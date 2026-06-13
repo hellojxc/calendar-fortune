@@ -1,21 +1,24 @@
 {
   "expo": {
-    "name": "calendar-fortune",
+    "name": "时序日历",
     "slug": "calendar-fortune",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "owner": "miemie1234",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.miemie.shixucalendar"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#f7f2e8",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "package": "com.miemie.shixucalendar",
       "predictiveBackGestureEnabled": false
     },
     "web": {
