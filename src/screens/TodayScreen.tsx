@@ -150,6 +150,26 @@ export default function TodayScreen() {
           </View>
         )}
 
+        {/* Lucky time CTA — actionable link from fortune to schedule */}
+        {hasBirthData && fortune.luckyTime && (
+          <TouchableOpacity
+            style={styles.luckyTimeCta}
+            activeOpacity={0.8}
+            onPress={() => {
+              const startTime = fortune.luckyTime.split('-')[0]?.trim() || '09:00';
+              navigation.navigate('AddSchedule', {
+                date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`,
+                editItem: undefined,
+                prefillTime: startTime,
+              } as any);
+            }}
+          >
+            <Text style={styles.luckyTimeCtaText}>
+              🕐 今日吉时 {fortune.luckyTime} · 安排重要事项
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* CTA — prompt new users to set birth data */}
         {!hasBirthData && (
           <TouchableOpacity
@@ -300,6 +320,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaBannerText: { fontSize: 13, color: PROTO.jade, fontWeight: '700' },
+  luckyTimeCta: {
+    marginTop: 14, paddingVertical: 12, paddingHorizontal: 16,
+    borderWidth: 1, borderColor: 'rgba(184, 135, 45, 0.4)',
+    borderRadius: 8, backgroundColor: 'rgba(239, 224, 189, 0.5)',
+    alignItems: 'center',
+  },
+  luckyTimeCtaText: { fontSize: 13, color: '#7a5d24', fontWeight: '600' },
   section: { marginTop: 14 },
   scheduleList: { gap: 8 },
   scheduleItem: {

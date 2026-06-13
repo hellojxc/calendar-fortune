@@ -28,7 +28,7 @@ const TIME_OPTIONS = [
 type Nav = NativeStackNavigationProp<any>;
 
 // Params that can be passed via route
-type AddScheduleParams = { date?: string; editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string } } | undefined;
+type AddScheduleParams = { date?: string; editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string }; prefillTime?: string } | undefined;
 
 export default function AddScheduleScreen() {
   const navigation = useNavigation<Nav>();
@@ -44,7 +44,7 @@ export default function AddScheduleScreen() {
   const [dateM, setDateM] = useState(String(initDate.getMonth() + 1));
   const [dateD, setDateD] = useState(String(initDate.getDate()));
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [time, setTime] = useState('09:00');
+  const [time, setTime] = useState(editItem?.time ?? params?.prefillTime ?? '09:00');
   const [customTime, setCustomTime] = useState('');
   const [useCustomTime, setUseCustomTime] = useState(false);
   const [hint, setHint] = useState('');

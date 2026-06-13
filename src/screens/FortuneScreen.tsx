@@ -110,6 +110,19 @@ export default function FortuneScreen() {
           <Text style={styles.adviceText}>{fortune.suitable}</Text>
         </View>
 
+        {/* CTA — prompt new users */}
+        {!hasBirthData && (
+          <TouchableOpacity
+            style={styles.ctaBanner}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('BirthData')}
+          >
+            <Text style={styles.ctaBannerText}>
+              ✦ 设置生辰八字，生成专属运势
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <Text style={styles.disclaimer}>
           结果仅作传统文化和生活提醒参考，不作为医疗、投资、法律等决策依据。
         </Text>
@@ -124,6 +137,7 @@ const PROTO = {
   muted: '#756d61',
   line: '#dfd1bd',
   jade: '#2f7d63',
+  jadeSoft: '#dcebe2',
 };
 
 const styles = StyleSheet.create({
@@ -184,4 +198,11 @@ const styles = StyleSheet.create({
     fontSize: 10, color: PROTO.muted, lineHeight: 15,
     marginTop: 12, textAlign: 'center',
   },
+  ctaBanner: {
+    marginTop: 14, paddingVertical: 14, paddingHorizontal: 20,
+    borderWidth: 1, borderColor: PROTO.jade, borderRadius: 8,
+    backgroundColor: PROTO.jadeSoft, borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  ctaBannerText: { fontSize: 13, color: PROTO.jade, fontWeight: '700' },
 });

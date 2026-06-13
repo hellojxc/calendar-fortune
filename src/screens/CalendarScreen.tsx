@@ -18,7 +18,15 @@ interface CalendarDay {
   isOtherMonth: boolean;
   isSelected: boolean;
   hasSchedule: boolean;
+  scheduleTypes: string[];  // for color-coded dots
 }
+
+const SCHEDULE_DOT_COLORS: Record<string, string> = {
+  meeting: '#a8422d',  // cinnabar
+  personal: '#2f7d63', // jade
+  health: '#315d78',   // water
+  other: '#b8872d',    // gold
+};
 
 /** Use lunar-typescript for real lunar day conversion. */
 function getLunarDay(year: number, month: number, day: number): string {
@@ -36,7 +44,7 @@ function daysInMonth(y: number, m: number): number {
 }
 
 /** Build a full calendar grid for year/month */
-function buildCalendarGrid(year: number, month: number, today: Date, selectedDay: number | null, scheduleDates: Set<string>): CalendarDay[] {
+function buildCalendarGrid(year: number, month: number, today: Date, selectedDay: number | null, scheduleDates: Set<string>, scheduleDayTypes: Map<string, string[]>): CalendarDay[] {
   const days: CalendarDay[] = [];
   const totalDays = daysInMonth(year, month);
   const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
@@ -45,7 +53,7 @@ function buildCalendarGrid(year: number, month: number, today: Date, selectedDay
   // Previous month tail
   const prevMonthDaysVal = daysInMonth(year, month - 1);
   for (let i = offset - 1; i >= 0; i--) {
-    days.push({ day: prevMonthDaysVal - i, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false });
+    days.push({ day: prevMonthDaysVal - i, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false, scheduleTypes: [] });
   }
 
   // Current month
@@ -58,6 +66,7 @@ function buildCalendarGrid(year: number, month: number, today: Date, selectedDay
       isOtherMonth: false,
       isSelected: selectedDay === d,
       hasSchedule: scheduleDates.has(ds),
+      scheduleTypes: scheduleDayTypes.get(ds) || [],
     });
   }
 
@@ -65,7 +74,7 @@ function buildCalendarGrid(year: number, month: number, today: Date, selectedDay
   const remaining = 7 - (days.length % 7);
   if (remaining < 7) {
     for (let d = 1; d <= remaining; d++) {
-      days.push({ day: d, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false });
+      days.push({ day: d, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false, scheduleTypes: [] });
     }
   }
 
@@ -97,9 +106,19 @@ export default function CalendarScreen() {
     return set;
   }, [allSchedules]);
 
+  const scheduleDayTypes = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const s of allSchedules) {
+      const arr = map.get(s.date) || [];
+      if (!arr.includes(s.type)) arr.push(s.type);
+      map.set(s.date, arr);
+    }
+    return map;
+  }, [allSchedules]);
+
   const grid = useMemo(
-    () => buildCalendarGrid(viewYear, viewMonth, today, selectedDay, scheduleDates),
-    [viewYear, viewMonth, selectedDay, scheduleDates]
+    () => buildCalendarGrid(viewYear, viewMonth, today, selectedDay, scheduleDates, scheduleDayTypes),
+    [viewYear, viewMonth, selectedDay, scheduleDates, scheduleDayTypes]
   );
 
   // Fallback day capped to the view month's actual day count (e.g. March 31 browsing Feb → capped to 28/29)
@@ -284,7 +303,9 @@ export default function CalendarScreen() {
                   {item.lunar}
                 </Text>
               )}
-              {item.hasSchedule && <View style={styles.dot} />}
+              {item.hasSchedule && (
+                <View style={[styles.dot, { backgroundColor: SCHEDULE_DOT_COLORS[item.scheduleTypes[0]] || PROTO.cinnabar }]} />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -306,15 +327,24 @@ export default function CalendarScreen() {
             </View>
           </View>
           {/* Schedule list for selected day */}
-          {selectedDaySchedules.length > 0 && (
+          {selectedDaySchedules.length > 0 ? (
             <View style={styles.scheduleSection}>
               <Text style={styles.scheduleSectionTitle}>日程</Text>
               {selectedDaySchedules.map((s) => (
-                <View key={s.id} style={styles.scheduleItem}>
+                <TouchableOpacity
+                  key={s.id}
+                  style={styles.scheduleItem}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('AddSchedule', { editItem: s } as any)}
+                >
                   <Text style={styles.scheduleItemTime}>{s.time}</Text>
                   <Text style={styles.scheduleItemTitle}>{s.title}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
+            </View>
+          ) : (
+            <View style={styles.scheduleSection}>
+              <Text style={styles.emptyScheduleText}>暂无日程 · 点右下角 ＋ 新增</Text>
             </View>
           )}
         </View>
@@ -433,6 +463,7 @@ const styles = StyleSheet.create({
   },
   scheduleItemTime: { fontSize: 12, color: PROTO.cinnabar, fontWeight: '600', width: 40 },
   scheduleItemTitle: { fontSize: 13, color: PROTO.ink, flex: 1 },
+  emptyScheduleText: { fontSize: 12, color: PROTO.muted, textAlign: 'center' },
   fab: {
     position: 'absolute', right: 20, bottom: 20,
     width: 52, height: 52, borderRadius: 26,
