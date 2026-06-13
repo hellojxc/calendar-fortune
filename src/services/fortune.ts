@@ -153,7 +153,6 @@ export function computeDailyFortune(birth: BirthData, date: Date = new Date()): 
     lunarDate: `${lunarMonthStr}月${lunarDayStr}`,
     stemBranch,
     solarTerm: termName,
-    solarTermDay: 1, // simplified — would need proper term-day calculation
     keyword: KEYWORDS_POOL[hashToInt(seed + 'kw') % KEYWORDS_POOL.length],
     overallScore,
     description: (() => {

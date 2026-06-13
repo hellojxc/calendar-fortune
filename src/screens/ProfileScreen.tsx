@@ -60,7 +60,7 @@ export default function ProfileScreen() {
             <Text style={styles.profileName}>{profile.name}</Text>
             <Text style={styles.profileStatus}>
               {birthDataSet
-                ? `已开启每日五行提醒 · ${profile.reminderTime} 推送`
+                ? `已开启每日五行提醒 · 每日 ${profile.reminderTime} 更新`
                 : '尚未设置生辰资料'}
             </Text>
           </View>

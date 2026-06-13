@@ -113,19 +113,22 @@ export default function CalendarScreen() {
     return grid.slice(rowStart, rowStart + 7);
   }, [viewMode, grid, selectedDay, viewYear, viewMonth, today]);
 
-  // Week nav: move by 7 days
+  // Week nav: use Date arithmetic for correct cross-month/year jumping
   const goPrevWeek = () => {
     const d = selectedDay ?? today.getDate();
-    const newDay = d - 7;
-    if (newDay < 1) goPrevMonth();
-    else setSelectedDay(newDay);
+    const cur = new Date(viewYear, viewMonth - 1, d);
+    cur.setDate(cur.getDate() - 7);
+    setViewYear(cur.getFullYear());
+    setViewMonth(cur.getMonth() + 1);
+    setSelectedDay(cur.getDate());
   };
   const goNextWeek = () => {
     const d = selectedDay ?? today.getDate();
-    const daysInCur = daysInMonth(viewYear, viewMonth);
-    const newDay = d + 7;
-    if (newDay > daysInCur) goNextMonth();
-    else setSelectedDay(newDay);
+    const cur = new Date(viewYear, viewMonth - 1, d);
+    cur.setDate(cur.getDate() + 7);
+    setViewYear(cur.getFullYear());
+    setViewMonth(cur.getMonth() + 1);
+    setSelectedDay(cur.getDate());
   };
 
   const selectedFortune = useMemo(() => {
