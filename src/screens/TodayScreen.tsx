@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import FortuneRing from '../components/FortuneRing';
@@ -61,7 +61,7 @@ export default function TodayScreen() {
               <Text style={styles.brandSub}>日历 · 农历 · 五行提醒</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => Alert.alert('通知', '暂无新通知')}>
             <Text style={styles.bellIcon}>🔔</Text>
           </TouchableOpacity>
         </View>
@@ -145,7 +145,7 @@ export default function TodayScreen() {
       </ScrollView>
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => Alert.alert('新增日程', '日程功能开发中')}>
         <Text style={styles.fabText}>＋</Text>
       </TouchableOpacity>
     </SafeAreaView>

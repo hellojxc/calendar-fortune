@@ -50,7 +50,7 @@ export default function ProfileScreen() {
                 : '尚未设置生辰资料'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => Alert.alert('编辑', '编辑资料功能开发中')}>
             <Text style={styles.iconBtnText}>✎</Text>
           </TouchableOpacity>
         </View>
