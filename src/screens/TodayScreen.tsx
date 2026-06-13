@@ -5,7 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import FortuneRing from '../components/FortuneRing';
 import { TODAY_FORTUNE } from '../data/fixtures';
-import { loadBirthData, hasBirthData } from '../storage/profile';
+import { loadBirthData, hasBirthData as hasBirthDataFn } from '../storage/profile';
 import { loadSchedule, deleteSchedule } from '../storage/schedule';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, ScheduleItem } from '../types';
@@ -138,6 +138,19 @@ export default function TodayScreen() {
           </View>
         </View>
 
+        {/* CTA — prompt new users to set birth data */}
+        {!hasBirthData && (
+          <TouchableOpacity
+            style={styles.ctaBanner}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('EditProfile' as any)}
+          >
+            <Text style={styles.ctaBannerText}>
+              ✦ 设置生辰八字，生成专属运势
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Schedule */}
         <View style={styles.section}>
           <View style={styles.sectionLabel}>
@@ -149,8 +162,9 @@ export default function TodayScreen() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.scheduleItem}
-                onLongPress={() => handleDeleteItem(item)}
                 activeOpacity={0.7}
+                onPress={() => navigation.navigate('AddSchedule', { editItem: item } as any)}
+                onLongPress={() => handleDeleteItem(item)}
               >
                 <Text style={styles.scheduleTime}>
                   {item.date === `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`
@@ -259,6 +273,14 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 11, color: PROTO.ink },
   chipTextJade: { fontSize: 11, color: PROTO.jade },
   chipTextGold: { fontSize: 11, color: PROTO.gold },
+  fortuneSection: { marginTop: 16 },
+  ctaBanner: {
+    marginTop: 16, paddingVertical: 14, paddingHorizontal: 20,
+    borderWidth: 1, borderColor: PROTO.jade, borderRadius: 8,
+    backgroundColor: PROTO.jadeSoft, borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  ctaBannerText: { fontSize: 13, color: PROTO.jade, fontWeight: '700' },
   section: { marginTop: 14 },
   scheduleList: { gap: 8 },
   scheduleItem: {

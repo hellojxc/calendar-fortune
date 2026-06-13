@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { addSchedule } from '../storage/schedule';
+import { addSchedule, updateSchedule } from '../storage/schedule';
 import { isValidDate } from '../services/fortune';
 import type { ScheduleItem } from '../types';
 
@@ -28,17 +28,18 @@ const TIME_OPTIONS = [
 type Nav = NativeStackNavigationProp<any>;
 
 // Params that can be passed via route
-type AddScheduleParams = { date?: string } | undefined;
+type AddScheduleParams = { date?: string; editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string } } | undefined;
 
 export default function AddScheduleScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute();
   const params = route.params as AddScheduleParams;
+  const editItem = params?.editItem;
 
   const today = new Date();
-  // Pre-fill date from route param (e.g. passed from Calendar)
-  const initDate = params?.date ? new Date(params.date + 'T00:00:00') : today;
-  const [title, setTitle] = useState('');
+  // Pre-fill date from route param (e.g. passed from Calendar) or from edit
+  const initDate = params?.date ? new Date(params.date + 'T00:00:00') : (editItem?.date ? new Date(editItem.date + 'T00:00:00') : today);
+  const [title, setTitle] = useState(editItem?.title ?? '');
   const [dateY, setDateY] = useState(String(initDate.getFullYear()));
   const [dateM, setDateM] = useState(String(initDate.getMonth() + 1));
   const [dateD, setDateD] = useState(String(initDate.getDate()));
@@ -82,7 +83,11 @@ export default function AddScheduleScreen() {
       return;
     }
 
-    await addSchedule({ date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
+    if (editItem) {
+      await updateSchedule(editItem.id, { date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
+    } else {
+      await addSchedule({ date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
+    }
     navigation.goBack();
   };
 
@@ -93,7 +98,7 @@ export default function AddScheduleScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancelText}>取消</Text>
           </TouchableOpacity>
-          <Text style={styles.pageTitle}>新增日程</Text>
+          <Text style={styles.pageTitle}>{editItem ? '编辑日程' : '新增日程'}</Text>
           <TouchableOpacity onPress={handleSave}>
             <Text style={styles.saveText}>保存</Text>
           </TouchableOpacity>

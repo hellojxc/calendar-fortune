@@ -88,4 +88,25 @@ export const Shadow = {
   },
 };
 
-export const FontFamily = undefined; // Use system default (SF Pro on iOS)
+export const FontFamily = undefined; // Use default system font (SF Pro on iOS)
+
+// ── Convenience aliases matching prototype PROTO names ──
+export const PROTO = {
+  ink: Colors.ink,
+  muted: Colors.muted,
+  line: Colors.line,
+  surface: Colors.surface,
+  cinnabar: Colors.fire,
+  cinnabarSoft: Colors.fireSoft,
+  jade: Colors.wood,
+  jadeSoft: Colors.woodSoft,
+  paper: Colors.paper,
+};
+
+// ── Accessibility / touch targets ──
+export const TOUCH = {
+  min: 44,          // Apple HIG minimum touch target
+  icon: 44,         // icon button recommended size
+  fab: 52,          // FAB button
+  navBtn: 44,       // navigation buttons
+};
