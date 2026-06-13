@@ -196,6 +196,16 @@ export default function CalendarScreen() {
             >
               <Text style={styles.navBtnText}>‹</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.todayBtn}
+              onPress={() => {
+                setViewYear(today.getFullYear());
+                setViewMonth(today.getMonth() + 1);
+                setSelectedDay(today.getDate());
+              }}
+            >
+              <Text style={styles.todayBtnText}>今</Text>
+            </TouchableOpacity>
             <View>
               <Text style={styles.monthTitle}>
                 {viewMode === 'month'
@@ -353,6 +363,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   navBtnText: { fontSize: 18, color: PROTO.muted, lineHeight: 20 },
+  todayBtn: {
+    marginLeft: 6, height: 30, paddingHorizontal: 10,
+    borderRadius: 15, borderWidth: 1, borderColor: PROTO.cinnabar,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  todayBtnText: { fontSize: 13, color: PROTO.cinnabar, fontWeight: '700' },
   monthTitle: { fontSize: 20, fontWeight: '700', color: PROTO.ink },
   segmented: {
     flexDirection: 'row', padding: 3,

@@ -138,6 +138,18 @@ export default function TodayScreen() {
           </View>
         </View>
 
+        {/* Fortune basis — adds transparency & credibility */}
+        {hasBirthData && fortune.stemBranch && (
+          <View style={styles.fortuneBasis}>
+            <Text style={styles.fortuneBasisLabel}>今日依据</Text>
+            <Text style={styles.fortuneBasisText}>
+              日主：{fortune.elements?.[0]?.element ?? '未知'}
+              　今日干支：{fortune.stemBranch}
+              　今日五行偏旺，建议聚焦{fortune.keyword}方向
+            </Text>
+          </View>
+        )}
+
         {/* CTA — prompt new users to set birth data */}
         {!hasBirthData && (
           <TouchableOpacity
@@ -274,6 +286,13 @@ const styles = StyleSheet.create({
   chipTextJade: { fontSize: 11, color: PROTO.jade },
   chipTextGold: { fontSize: 11, color: PROTO.gold },
   fortuneSection: { marginTop: 16 },
+  fortuneBasis: {
+    marginTop: 14, padding: 12,
+    borderWidth: 1, borderColor: PROTO.line, borderRadius: 8,
+    backgroundColor: PROTO.surface,
+  },
+  fortuneBasisLabel: { fontSize: 11, fontWeight: '700', color: PROTO.muted, marginBottom: 6 },
+  fortuneBasisText: { fontSize: 12, color: PROTO.ink, lineHeight: 20 },
   ctaBanner: {
     marginTop: 16, paddingVertical: 14, paddingHorizontal: 20,
     borderWidth: 1, borderColor: PROTO.jade, borderRadius: 8,
