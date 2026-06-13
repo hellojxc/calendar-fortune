@@ -26,7 +26,7 @@ export default function FortuneScreen() {
         const birth = await loadBirthData();
         if (!cancelled && birth) {
           const computed = computeDailyFortune(birth);
-          setFortune(computeDailyFortune(birth));
+          setFortune(computed);
           setHasBirthData(true);
         } else if (!cancelled) {
           setFortune(computeFallbackFortune());
