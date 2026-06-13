@@ -54,6 +54,7 @@ export default function EditProfileScreen({ navigation }: Props) {
   const [lunarYear, setLunarYear] = useState('');  // 农历年输入
   const [lunarMonth, setLunarMonth] = useState(''); // 农历月
   const [lunarDay, setLunarDay] = useState('');     // 农历日
+  const [isLeapMonth, setIsLeapMonth] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function EditProfileScreen({ navigation }: Props) {
       if (anyLunarFilled) {
         if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
           try {
-            const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
+            const solar = (Lunar as any).fromYmd(ly, lm, ld, isLeapMonth).getSolar();
             saveY = solar.getYear();
             saveM = solar.getMonth();
             saveD = solar.getDay();
@@ -263,6 +264,15 @@ export default function EditProfileScreen({ navigation }: Props) {
                   <Text style={styles.fieldLabel}>日</Text>
                   <TextInput style={styles.input} value={lunarDay} onChangeText={setLunarDay} placeholder="5" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
                 </View>
+              </View>
+              {/* 闰月 toggle */}
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>闰月</Text>
+                <Switch
+                  value={isLeapMonth}
+                  onValueChange={setIsLeapMonth}
+                  trackColor={{ false: Colors.muted, true: '#2f7d63' }}
+                />
               </View>
               {/* Solar preview from lunar */}
               {(() => {

@@ -186,7 +186,10 @@ export default function ProfileScreen() {
                 styles.notifyStatus,
                 { color: notifyStatus === 'granted' ? '#2f7d63' : notifyStatus === 'denied' ? '#a8422d' : '#756d61' }
               ]}>
-                {notifyStatus === 'granted' ? '已开启' : notifyStatus === 'denied' ? '已关闭' : '点击开启'}
+                {notifyStatus === 'granted' ? '已开启'
+                  : notifyStatus === 'denied' ? '已关闭'
+                  : notifyStatus === 'unsupported' ? '设备不支持'
+                  : '点击开启'}
               </Text>
             </TouchableOpacity>
             <View style={styles.privacyActions}>

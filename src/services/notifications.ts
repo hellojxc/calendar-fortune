@@ -14,11 +14,11 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export type PermissionStatus = 'undetermined' | 'granted' | 'denied';
+export type PermissionStatus = 'undetermined' | 'granted' | 'denied' | 'unsupported';
 
 /** Check current notification permission status */
 export async function getPermissionStatus(): Promise<PermissionStatus> {
-  if (!Device.isDevice) return 'denied';
+  if (!Device.isDevice) return 'unsupported';
   const { status } = await Notifications.getPermissionsAsync();
   return (status as PermissionStatus) ?? 'undetermined';
 }
@@ -26,8 +26,8 @@ export async function getPermissionStatus(): Promise<PermissionStatus> {
 /** Request notification permission. Returns final status. */
 export async function requestPermission(): Promise<PermissionStatus> {
   if (!Device.isDevice) {
-    await AsyncStorage.setItem(PERMISSION_KEY, 'denied');
-    return 'denied';
+    await AsyncStorage.setItem(PERMISSION_KEY, 'unsupported');
+    return 'unsupported';
   }
   const { status } = await Notifications.requestPermissionsAsync();
   await AsyncStorage.setItem(PERMISSION_KEY, status);

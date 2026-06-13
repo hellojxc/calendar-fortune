@@ -27,6 +27,7 @@ export default function OnboardingScreen() {
   const [lunarY, setLunarY] = useState(String(new Date().getFullYear() - 28));
   const [lunarM, setLunarM] = useState('5');
   const [lunarD, setLunarD] = useState('8');
+  const [isLeapMonth, setIsLeapMonth] = useState(false);  // 闰月
 
   // Step 3: time
   const [selectedHour, setSelectedHour] = useState(3);
@@ -37,10 +38,11 @@ export default function OnboardingScreen() {
     let birthY: number, birthM: number, birthD: number;
     if (isLunar) {
       try {
-        const solar = Lunar.fromYmd(
+        const solar = (Lunar as any).fromYmd(
           parseInt(lunarY, 10),
           parseInt(lunarM, 10),
-          parseInt(lunarD, 10)
+          parseInt(lunarD, 10),
+          isLeapMonth
         ).getSolar();
         birthY = solar.getYear();
         birthM = solar.getMonth();
@@ -60,8 +62,8 @@ export default function OnboardingScreen() {
     }
 
     const profile: UserProfile = {
-      name: '',
-      avatar: '',
+      name: '未命名',
+      avatar: '未',
       reminderTime: '08:00',
       hasFortuneEnabled: true,
       birthYear: birthY,
@@ -70,6 +72,15 @@ export default function OnboardingScreen() {
       birthHour: unknownHour ? null : selectedHour,
     };
     await saveProfile(profile);
+    await setOnboardingDone();
+    (navigation as any).reset({ index: 0, routes: [{ name: 'MainApp' }] });
+  };
+
+  const handleSkip = async () => {
+    await saveProfile({
+      name: '未命名', avatar: '未', reminderTime: '08:00',
+      hasFortuneEnabled: true, birthHour: null,
+    });
     await setOnboardingDone();
     (navigation as any).reset({ index: 0, routes: [{ name: 'MainApp' }] });
   };
@@ -122,6 +133,10 @@ export default function OnboardingScreen() {
               <Text style={styles.bigCardTitle}>农历生日</Text>
               <Text style={styles.bigCardDesc}>传统农历日期，如 七月 初五</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.skipLink} onPress={handleSkip} activeOpacity={0.6}>
+              <Text style={styles.skipLinkText}>稍后设置</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -172,6 +187,17 @@ export default function OnboardingScreen() {
                 />
               </View>
             </View>
+
+            {isLunar && (
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>闰月</Text>
+                <Switch
+                  value={isLeapMonth}
+                  onValueChange={setIsLeapMonth}
+                  trackColor={{ false: '#dfd1bd', true: '#2f7d63' }}
+                />
+              </View>
+            )}
 
             <TouchableOpacity
               style={styles.switchTypeBtn}
@@ -354,7 +380,7 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 14, color: '#24211c' },
   chipTextActive: { color: '#a8422d', fontWeight: '700' },
   chipTextDisabled: { color: '#bbb' },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', marginTop: 12 },
   switchLabel: { fontSize: 14, color: '#756d61' },
   // Done step
   doneIcon: { fontSize: 48, textAlign: 'center', marginBottom: 16 },
@@ -363,6 +389,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#2f7d63', alignItems: 'center',
   },
   doneBtnText: { fontSize: 16, color: '#fff', fontWeight: '700' },
+  skipLink: { alignSelf: 'center', marginTop: 20, padding: 8 },
+  skipLinkText: { fontSize: 13, color: '#756d61', textDecorationLine: 'underline' },
   // Bottom nav
   bottomNav: {
     flexDirection: 'row', alignItems: 'center',
