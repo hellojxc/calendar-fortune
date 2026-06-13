@@ -99,7 +99,11 @@ export default function TodayScreen() {
         </View>
 
         {/* Quick Tiles */}
-        <View style={styles.quickGrid}>
+        <View style={styles.section}>
+          <View style={styles.sectionLabel}>
+            <Text style={styles.sectionTitle}>今日行动指南</Text>
+          </View>
+          <View style={styles.quickGrid}>
           <View style={styles.quickTile}>
             <Text style={styles.quickLabel}>今日宜</Text>
             <Text style={styles.quickValue}>{fortune.todayGood}</Text>
@@ -108,6 +112,7 @@ export default function TodayScreen() {
             <Text style={styles.quickLabel}>今日忌</Text>
             <Text style={styles.quickValue}>{fortune.todayBad}</Text>
           </View>
+        </View>
         </View>
 
         {/* Fortune Card */}
@@ -137,18 +142,6 @@ export default function TodayScreen() {
             </View>
           </View>
         </View>
-
-        {/* Fortune basis — adds transparency & credibility */}
-        {hasBirthData && fortune.stemBranch && (
-          <View style={styles.fortuneBasis}>
-            <Text style={styles.fortuneBasisLabel}>今日依据</Text>
-            <Text style={styles.fortuneBasisText}>
-              日主：{fortune.dayMasterElement}
-              　今日干支：{fortune.stemBranch}
-              　今日五行偏旺，建议聚焦{fortune.keyword}方向
-            </Text>
-          </View>
-        )}
 
         {/* Lucky time CTA — actionable link from fortune to schedule */}
         {hasBirthData && fortune.luckyTime && (

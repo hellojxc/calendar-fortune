@@ -83,6 +83,19 @@ export default function FortuneScreen() {
           </View>
         </View>
 
+        {/* Fortune basis — bazi details */}
+        {hasBirthData && fortune.stemBranch && (
+          <View style={styles.fortuneBasis}>
+            <Text style={styles.fortuneBasisTitle}>八字依据</Text>
+            <Text style={styles.fortuneBasisText}>
+              日主：{fortune.dayMasterElement}　今日：{fortune.stemBranch}　节气：{fortune.solarTerm}
+            </Text>
+            <Text style={styles.fortuneBasisDesc}>
+              今日{fortune.dayMasterElement}行偏旺，建议聚焦{fortune.keyword}方向
+            </Text>
+          </View>
+        )}
+
         {/* Aspect cards */}
         <View style={styles.section}>
           <View style={styles.sectionLabel}>
@@ -194,6 +207,14 @@ const styles = StyleSheet.create({
   },
   adviceTitle: { fontSize: 14, fontWeight: '700', color: PROTO.ink, marginBottom: 7 },
   adviceText: { fontSize: 12, color: PROTO.muted, lineHeight: 20 },
+  fortuneBasis: {
+    marginTop: 14, padding: 12,
+    borderWidth: 1, borderColor: PROTO.line, borderRadius: 8,
+    backgroundColor: PROTO.surface,
+  },
+  fortuneBasisTitle: { fontSize: 13, fontWeight: '700', color: PROTO.ink, marginBottom: 6 },
+  fortuneBasisText: { fontSize: 12, color: PROTO.ink, lineHeight: 20 },
+  fortuneBasisDesc: { fontSize: 12, color: PROTO.muted, lineHeight: 18, marginTop: 6 },
   disclaimer: {
     fontSize: 10, color: PROTO.muted, lineHeight: 15,
     marginTop: 12, textAlign: 'center',

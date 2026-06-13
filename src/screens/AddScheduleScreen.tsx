@@ -83,8 +83,10 @@ export default function AddScheduleScreen() {
 
     if (editItem) {
       await updateSchedule(editItem.id, { date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
+      Alert.alert('已更新', `「${title.trim()}」已保存`);
     } else {
       await addSchedule({ date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
+      Alert.alert('已添加', `「${title.trim()}」已加入日程`);
     }
     navigation.goBack();
   };

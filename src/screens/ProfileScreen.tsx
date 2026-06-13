@@ -5,7 +5,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { SETTINGS_ITEMS } from '../data/fixtures';
-import { loadProfile, hasBirthData, clearBirthData } from '../storage/profile';
+import { loadProfile, clearBirthData } from '../storage/profile';
+import { getPermissionStatus, requestPermission, scheduleDailyReminder, cancelAllReminders } from '../services/notifications';
+import type { PermissionStatus } from '../services/notifications';
 import type { UserProfile } from '../types';
 import type { MeStackParamList } from '../navigation/types';
 
@@ -14,6 +16,7 @@ type Nav = NativeStackNavigationProp<MeStackParamList, 'MeMain'>;
 export default function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const [birthDataSet, setBirthDataSet] = useState(false);
+  const [notifyStatus, setNotifyStatus] = useState<PermissionStatus>('undetermined');
   const [profile, setProfile] = useState<UserProfile>({
     name: '', avatar: '', reminderTime: '08:00', hasFortuneEnabled: true,
     birthHour: null,
@@ -23,11 +26,12 @@ export default function ProfileScreen() {
     useCallback(() => {
       let cancelled = false;
       (async () => {
-        const exists = await hasBirthData();
         const p = await loadProfile();
+        const exists = p.birthYear != null && p.birthMonth != null && p.birthDay != null;
         if (!cancelled) {
-          setBirthDataSet(exists);
           setProfile(p);
+          setBirthDataSet(exists);
+          setNotifyStatus(await getPermissionStatus());
         }
       })();
       return () => { cancelled = true; };
@@ -164,6 +168,27 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>隐私与数据</Text>
             </View>
             <Text style={styles.privacyNote}>✦ 所有生辰资料仅保存在本机，不上传任何服务器</Text>
+            <TouchableOpacity
+              style={styles.notifyRow}
+              activeOpacity={0.7}
+              onPress={async () => {
+                const status = notifyStatus === 'granted'
+                  ? (await cancelAllReminders(), 'denied')
+                  : await requestPermission();
+                if (status === 'granted') {
+                  await scheduleDailyReminder(profile.reminderTime);
+                }
+                setNotifyStatus(status as PermissionStatus);
+              }}
+            >
+              <Text style={styles.notifyLabel}>每日运势提醒</Text>
+              <Text style={[
+                styles.notifyStatus,
+                { color: notifyStatus === 'granted' ? '#2f7d63' : notifyStatus === 'denied' ? '#a8422d' : '#756d61' }
+              ]}>
+                {notifyStatus === 'granted' ? '已开启' : notifyStatus === 'denied' ? '已关闭' : '点击开启'}
+              </Text>
+            </TouchableOpacity>
             <View style={styles.privacyActions}>
               <TouchableOpacity
                 style={styles.privacyBtn}
@@ -284,4 +309,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: PROTO.line, alignItems: 'center',
   },
   privacyBtnText: { fontSize: 12, fontWeight: '600', color: PROTO.ink },
+  notifyRow: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: PROTO.line,
+    marginBottom: 10,
+  },
+  notifyLabel: { fontSize: 13, color: PROTO.ink },
+  notifyStatus: { fontSize: 12, fontWeight: '600' },
 });
