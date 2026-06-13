@@ -47,8 +47,8 @@ export default function AddScheduleScreen() {
   const [time, setTime] = useState(editItem?.time ?? params?.prefillTime ?? '09:00');
   const [customTime, setCustomTime] = useState('');
   const [useCustomTime, setUseCustomTime] = useState(false);
-  const [hint, setHint] = useState('');
-  const [type, setType] = useState<ScheduleItem['type']>('meeting');
+  const [hint, setHint] = useState(editItem?.hint ?? '');
+  const [type, setType] = useState<ScheduleItem['type']>((editItem?.type as ScheduleItem['type']) ?? 'meeting');
 
   const dateStr = useMemo(() => {
     const y = dateY.padStart(4, '0');

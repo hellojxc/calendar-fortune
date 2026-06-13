@@ -3,9 +3,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CalendarScreen from '../screens/CalendarScreen';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 
+import type { AddScheduleParams } from './types';
+
 export type CalendarStackParamList = {
   CalendarMain: undefined;
-  AddSchedule: { date?: string } | undefined;
+  AddSchedule: AddScheduleParams | undefined;
 };
 
 const Stack = createNativeStackNavigator<CalendarStackParamList>();

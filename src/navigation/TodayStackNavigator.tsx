@@ -2,10 +2,11 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TodayScreen from '../screens/TodayScreen';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
+import type { AddScheduleParams } from './types';
 
 export type TodayStackParamList = {
   TodayMain: undefined;
-  AddSchedule: { date?: string } | undefined;
+  AddSchedule: AddScheduleParams | undefined;
 };
 
 const Stack = createNativeStackNavigator<TodayStackParamList>();

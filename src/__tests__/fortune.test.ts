@@ -109,6 +109,11 @@ describe('computeDailyFortune', () => {
     expect(fortune.stemBranch).not.toBe('丙申月 丁亥日');
   });
 
+  test('dayMasterElement is set from user day stem', () => {
+    // Birth day stem is 丁 → 火
+    expect(fortune.dayMasterElement).toBe('火');
+  });
+
   test('day-stem element gets higher weight', () => {
     const max = fortune.elements.reduce((a, b) => a.value > b.value ? a : b);
     expect(max.value).toBeGreaterThan(50);

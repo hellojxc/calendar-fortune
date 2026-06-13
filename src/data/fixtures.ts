@@ -27,6 +27,7 @@ export const TODAY_FORTUNE: DailyFortune = {
   lunarDate: '四月廿八',
   stemBranch: '丙午月 戊辰日',
   solarTerm: '芒种',
+  dayMasterElement: '火',
   keyword: '稳中求进',
   overallScore: 78,
   description:

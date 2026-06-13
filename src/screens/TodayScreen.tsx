@@ -143,7 +143,7 @@ export default function TodayScreen() {
           <View style={styles.fortuneBasis}>
             <Text style={styles.fortuneBasisLabel}>今日依据</Text>
             <Text style={styles.fortuneBasisText}>
-              日主：{fortune.elements?.[0]?.element ?? '未知'}
+              日主：{fortune.dayMasterElement}
               　今日干支：{fortune.stemBranch}
               　今日五行偏旺，建议聚焦{fortune.keyword}方向
             </Text>
@@ -175,7 +175,7 @@ export default function TodayScreen() {
           <TouchableOpacity
             style={styles.ctaBanner}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('EditProfile' as any)}
+            onPress={() => (navigation as any).navigate('MeTab', { screen: 'EditProfile' })}
           >
             <Text style={styles.ctaBannerText}>
               ✦ 设置生辰八字，生成专属运势

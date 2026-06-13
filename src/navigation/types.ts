@@ -3,6 +3,13 @@
  */
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+// ── Shared params for AddSchedule screen (used by Today & Calendar stacks) ──
+export type AddScheduleParams = {
+  date?: string;
+  editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string };
+  prefillTime?: string;
+};
+
 // ── Fortune tab stack ──
 export type FortuneStackParamList = {
   FortuneMain: undefined;
