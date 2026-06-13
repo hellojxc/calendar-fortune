@@ -126,7 +126,13 @@ export default function ProfileScreen() {
                 key={item.id}
                 style={styles.settingItem}
                 activeOpacity={0.7}
-                onPress={item.id === 'delete_data' ? handleDelete : undefined}
+                onPress={() => {
+                  if (item.id === 'delete_data') handleDelete();
+                  else if (item.id === 'privacy') Alert.alert('隐私与数据', '所有资料仅存本机。可在下方清除或导出。');
+                  else if (item.id === 'fortune_model') Alert.alert('运势模型', '基于 lunar-typescript 天文精度八字引擎，五行加权计算每日运势');
+                  else if (item.id === 'lunar') Alert.alert('农历与节气', '使用天文算法实时计算，精确到节气时刻');
+                  else Alert.alert(item.title, item.desc);
+                }}
               >
                 <View style={[styles.miniIcon, { backgroundColor: item.iconBg }]}>
                   <Text style={[styles.miniIconText, { color: item.iconColor }]}>{item.icon}</Text>
@@ -147,18 +153,21 @@ export default function ProfileScreen() {
             <Text style={styles.sectionSub}>五行色</Text>
           </View>
           <View style={styles.themeRow}>
-            <View style={[styles.swatch, { backgroundColor: Colors.fire }]}>
-              <View style={[styles.swatchHalf, { backgroundColor: Colors.surface }]} />
-            </View>
-            <View style={[styles.swatch, { backgroundColor: Colors.wood }]}>
-              <View style={[styles.swatchHalf, { backgroundColor: '#e9f0e4' }]} />
-            </View>
-            <View style={[styles.swatch, { backgroundColor: Colors.water }]}>
-              <View style={[styles.swatchHalf, { backgroundColor: '#ecf2f3' }]} />
-            </View>
-            <View style={[styles.swatch, { backgroundColor: Colors.gold }]}>
-              <View style={[styles.swatchHalf, { backgroundColor: '#f5ebd6' }]} />
-          </View>
+            {[{ color: Colors.fire, bg: Colors.surface, label: '纸色+朱砂' },
+              { color: Colors.wood, bg: '#e9f0e4', label: '玉绿' },
+              { color: Colors.water, bg: '#ecf2f3', label: '靛蓝' },
+              { color: Colors.gold, bg: '#f5ebd6', label: '金色' },
+            ].map((t, i) => (
+              <TouchableOpacity
+                key={i}
+                activeOpacity={0.7}
+                onPress={() => Alert.alert(t.label, '主题切换将在后续版本支持')}
+              >
+                <View style={[styles.swatch, { backgroundColor: t.color }]}>
+                  <View style={[styles.swatchHalf, { backgroundColor: t.bg }]} />
+                </View>
+              </TouchableOpacity>
+            ))}
         </View>
         </View>
 

@@ -366,9 +366,14 @@ export default function CalendarScreen() {
         style={styles.fab}
         activeOpacity={0.8}
         onPress={() => {
-          const d = effectiveDay;
-          const ds = `${viewYear}-${String(viewMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-          navigation.navigate('AddSchedule', { date: ds } as any);
+          try {
+            const d = effectiveDay;
+            if (isNaN(d) || d < 1 || d > 31) return;
+            const ds = `${viewYear}-${String(viewMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            (navigation as any).navigate('AddSchedule', { date: ds });
+          } catch (e) {
+            // silent — fail gracefully
+          }
         }}
       >
         <Text style={styles.fabText}>＋</Text>

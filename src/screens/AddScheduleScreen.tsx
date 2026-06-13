@@ -18,6 +18,15 @@ const TYPE_OPTIONS: { key: ScheduleItem['type']; label: string }[] = [
   { key: 'other', label: '其他' },
 ];
 
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) {
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    return isLeap ? 29 : 28;
+  }
+  const d = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return d[month - 1];
+}
+
 const TIME_OPTIONS = [
   '06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30',
   '10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -104,47 +113,57 @@ export default function AddScheduleScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Date */}
+        {/* Date — calendar picker */}
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>日期</Text>
-          <View style={styles.dateRow}>
-            <View style={{ flex: 2 }}>
-              <TextInput
-                style={styles.input}
-                value={dateY}
-                onChangeText={setDateY}
-                placeholder="2026"
-                placeholderTextColor={PROTO.muted}
-                keyboardType="number-pad"
-                maxLength={4}
-              />
-            </View>
-            <Text style={styles.dateSep}>年</Text>
-            <View style={{ flex: 1 }}>
-              <TextInput
-                style={styles.input}
-                value={dateM}
-                onChangeText={setDateM}
-                placeholder="6"
-                placeholderTextColor={PROTO.muted}
-                keyboardType="number-pad"
-                maxLength={2}
-              />
-            </View>
-            <Text style={styles.dateSep}>月</Text>
-            <View style={{ flex: 1 }}>
-              <TextInput
-                style={styles.input}
-                value={dateD}
-                onChangeText={setDateD}
-                placeholder="13"
-                placeholderTextColor={PROTO.muted}
-                keyboardType="number-pad"
-                maxLength={2}
-              />
-            </View>
-            <Text style={styles.dateSep}>日</Text>
+          <View style={styles.fieldLabelRow}>
+            <Text style={styles.fieldLabel}>日期</Text>
+            <Text style={styles.dateDisplay}>
+              {dateY}-{dateM.padStart(2,'0')}-{dateD.padStart(2,'0')}
+            </Text>
           </View>
+          {/* Month nav */}
+          <View style={styles.monthNav}>
+            <TouchableOpacity onPress={() => {
+              let m = parseInt(dateM, 10);
+              let y = parseInt(dateY, 10);
+              if (m === 1) { y--; m = 12; } else { m--; }
+              setDateY(String(y)); setDateM(String(m));
+            }}>
+              <Text style={styles.monthNavArrow}>‹</Text>
+            </TouchableOpacity>
+            <Text style={styles.monthNavLabel}>{dateY}.{dateM.padStart(2,'0')}</Text>
+            <TouchableOpacity onPress={() => {
+              let m = parseInt(dateM, 10);
+              let y = parseInt(dateY, 10);
+              if (m === 12) { y++; m = 1; } else { m++; }
+              setDateY(String(y)); setDateM(String(m));
+            }}>
+              <Text style={styles.monthNavArrow}>›</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Day grid */}
+          {(() => {
+            const y = parseInt(dateY, 10);
+            const m = parseInt(dateM, 10);
+            const dim = daysInMonth(y, m);
+            const fwd = new Date(y, m - 1, 1).getDay();
+            const sel = parseInt(dateD, 10);
+            const cells = [];
+            for (let i = 0; i < fwd; i++) cells.push(<View key={`e${i}`} style={styles.dayCell} />);
+            for (let d = 1; d <= dim; d++) {
+              cells.push(
+                <TouchableOpacity
+                  key={d}
+                  style={[styles.dayCell, sel === d && styles.dayCellSelected]}
+                  onPress={() => setDateD(String(d))}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dayText, sel === d && styles.dayTextSelected]}>{d}</Text>
+                </TouchableOpacity>
+              );
+            }
+            return <View style={styles.dayGrid}>{cells}</View>;
+          })()}
         </View>
 
         {/* Time */}
@@ -315,4 +334,20 @@ const styles = StyleSheet.create({
   typeChipActive: { borderColor: PROTO.cinnabar, backgroundColor: '#f0d9d1' },
   typeChipText: { fontSize: 13, color: PROTO.muted },
   typeChipTextActive: { color: PROTO.cinnabar, fontWeight: '700' },
+  // Calendar picker
+  dateDisplay: { fontSize: 14, color: PROTO.ink, fontWeight: '600' },
+  monthNav: {
+    flexDirection: 'row', justifyContent: 'center',
+    alignItems: 'center', gap: 16, marginBottom: 8,
+  },
+  monthNavArrow: { fontSize: 24, color: PROTO.jade, padding: 4 },
+  monthNavLabel: { fontSize: 15, fontWeight: '700', color: PROTO.ink },
+  dayGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  dayCell: {
+    width: '14.28%', aspectRatio: 1, alignItems: 'center',
+    justifyContent: 'center', borderRadius: 16,
+  },
+  dayCellSelected: { backgroundColor: PROTO.cinnabar },
+  dayText: { fontSize: 14, color: PROTO.ink },
+  dayTextSelected: { color: '#fff', fontWeight: '700' },
 });
