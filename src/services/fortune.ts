@@ -144,12 +144,13 @@ export function computeDailyFortune(birth: BirthData, date: Date = new Date()): 
     ? (termObj as any).getName()
     : '—';
 
-  // Stem-branch string
-  const stemBranch = `${bazi.month.stem}${bazi.month.branch}月 ${bazi.day.stem}${bazi.day.branch}日`;
+  // ── Today's stem-branch (from today's bazi, NOT user's birth bazi) ──
+  const todayBazi = lunarToday.getEightChar();
+  const stemBranch = `${todayBazi.getMonth()}月 ${todayBazi.getDay()}日`;
 
   return {
     date: localDateStr(date),
-    lunarDate: `农历${lunarMonthStr}月${lunarDayStr}`,
+    lunarDate: `${lunarMonthStr}月${lunarDayStr}`,
     stemBranch,
     solarTerm: termName,
     solarTermDay: 1, // simplified — would need proper term-day calculation

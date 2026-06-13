@@ -2,12 +2,14 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Solar } from 'lunar-typescript';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { WEEKDAY_LABELS } from '../data/fixtures';
 import { computeFallbackFortune } from '../services/fortune';
 import { loadSchedule } from '../storage/schedule';
 import type { ScheduleItem } from '../types';
+import type { CalendarStackParamList } from '../navigation/CalendarStackNavigator';
 
 interface CalendarDay {
   day: number;
@@ -195,9 +197,14 @@ export default function CalendarScreen() {
                   : (() => {
                       const first = visibleGrid[0];
                       const last = visibleGrid[visibleGrid.length - 1];
-                      const m1 = viewMonth - (first.isOtherMonth && first.day > 15 ? 1 : 0);
-                      const m2 = viewMonth + (last.isOtherMonth && last.day < 15 ? 1 : 0);
-                      return `${viewYear}年${m1}月${first.day}日 – ${m2}月${last.day}日`;
+                      // Use Date objects to correctly compute month/year for boundary days
+                      const d1 = new Date(viewYear, viewMonth - 1, first.day);
+                      if (first.isOtherMonth && first.day > 15) d1.setMonth(d1.getMonth() - 1);
+                      const d2 = new Date(viewYear, viewMonth - 1, last.day);
+                      if (last.isOtherMonth && last.day < 15) d2.setMonth(d2.getMonth() + 1);
+                      const y1 = d1.getFullYear(), m1 = d1.getMonth() + 1, dd1 = d1.getDate();
+                      const y2 = d2.getFullYear(), m2 = d2.getMonth() + 1, dd2 = d2.getDate();
+                      return `${y1}年${m1}月${dd1}日 – ${y2}年${m2}月${dd2}日`;
                     })()}
               </Text>
             </View>
@@ -296,6 +303,18 @@ export default function CalendarScreen() {
           )}
         </View>
       </ScrollView>
+      {/* FAB — add schedule for selected day */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => {
+          const d = selectedDay ?? today.getDate();
+          const ds = `${viewYear}-${String(viewMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          navigation.navigate('AddSchedule', { date: ds } as any);
+        }}
+      >
+        <Text style={styles.fabText}>＋</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -392,4 +411,13 @@ const styles = StyleSheet.create({
   },
   scheduleItemTime: { fontSize: 12, color: PROTO.cinnabar, fontWeight: '600', width: 40 },
   scheduleItemTitle: { fontSize: 13, color: PROTO.ink, flex: 1 },
+  fab: {
+    position: 'absolute', right: 20, bottom: 20,
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: PROTO.cinnabar,
+    alignItems: 'center', justifyContent: 'center',
+    elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15, shadowRadius: 6,
+  },
+  fabText: { fontSize: 24, color: '#fff', lineHeight: 28, fontWeight: '300' },
 });

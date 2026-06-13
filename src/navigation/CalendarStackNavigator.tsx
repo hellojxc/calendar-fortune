@@ -1,19 +1,19 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import TodayScreen from '../screens/TodayScreen';
+import CalendarScreen from '../screens/CalendarScreen';
 import AddScheduleScreen from '../screens/AddScheduleScreen';
 
-export type TodayStackParamList = {
-  TodayMain: undefined;
+export type CalendarStackParamList = {
+  CalendarMain: undefined;
   AddSchedule: { date?: string } | undefined;
 };
 
-const Stack = createNativeStackNavigator<TodayStackParamList>();
+const Stack = createNativeStackNavigator<CalendarStackParamList>();
 
-export default function TodayStackNavigator() {
+export default function CalendarStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="TodayMain" component={TodayScreen} />
+      <Stack.Screen name="CalendarMain" component={CalendarScreen} />
       <Stack.Screen name="AddSchedule" component={AddScheduleScreen} />
     </Stack.Navigator>
   );

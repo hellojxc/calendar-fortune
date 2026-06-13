@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TodayStackNavigator from './TodayStackNavigator';
-import CalendarScreen from '../screens/CalendarScreen';
+import CalendarStackNavigator from './CalendarStackNavigator';
 import FortuneStackNavigator from './FortuneStackNavigator';
 import MeStackNavigator from './MeStackNavigator';
 import { Colors } from '../theme';
@@ -71,7 +71,7 @@ export default function TabNavigator() {
       />
       <Tab.Screen
         name="Calendar"
-        component={CalendarScreen}
+        component={CalendarStackNavigator}
         options={{ tabBarLabel: '日历' }}
       />
       <Tab.Screen

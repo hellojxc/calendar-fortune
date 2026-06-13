@@ -1,15 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { addSchedule } from '../storage/schedule';
+import { isValidDate } from '../services/fortune';
 import type { ScheduleItem } from '../types';
-import type { TodayStackParamList } from '../navigation/types';
-
-type Props = NativeStackScreenProps<TodayStackParamList, 'AddSchedule'>;
 
 const TYPE_OPTIONS: { key: ScheduleItem['type']; label: string }[] = [
   { key: 'meeting', label: '会议' },
@@ -26,19 +25,23 @@ const TIME_OPTIONS = [
   '22:00',
 ];
 
-function todayStr(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dd}`;
-}
+type Nav = NativeStackNavigationProp<any>;
 
-export default function AddScheduleScreen({ navigation }: Props) {
+// Params that can be passed via route
+type AddScheduleParams = { date?: string } | undefined;
+
+export default function AddScheduleScreen() {
+  const navigation = useNavigation<Nav>();
+  const route = useRoute();
+  const params = route.params as AddScheduleParams;
+
+  const today = new Date();
+  // Pre-fill date from route param (e.g. passed from Calendar)
+  const initDate = params?.date ? new Date(params.date + 'T00:00:00') : today;
   const [title, setTitle] = useState('');
-  const [dateY, setDateY] = useState(String(new Date().getFullYear()));
-  const [dateM, setDateM] = useState(String(new Date().getMonth() + 1));
-  const [dateD, setDateD] = useState(String(new Date().getDate()));
+  const [dateY, setDateY] = useState(String(initDate.getFullYear()));
+  const [dateM, setDateM] = useState(String(initDate.getMonth() + 1));
+  const [dateD, setDateD] = useState(String(initDate.getDate()));
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [time, setTime] = useState('09:00');
   const [customTime, setCustomTime] = useState('');
@@ -55,11 +58,30 @@ export default function AddScheduleScreen({ navigation }: Props) {
 
   const handleSave = async () => {
     if (!title.trim()) { Alert.alert('请输入标题'); return; }
+
+    // Validate date
+    const y = parseInt(dateY, 10);
+    const m = parseInt(dateM, 10);
+    const d = parseInt(dateD, 10);
+    if (!isValidDate(y, m, d)) {
+      Alert.alert('日期有误', '请输入真实存在的日期（如 2 月无 31 日）');
+      return;
+    }
+
+    // Validate time
     const finalTime = useCustomTime ? customTime : time;
-    if (!/^\d{2}:\d{2}$/.test(finalTime)) {
+    const timeMatch = /^(\d{2}):(\d{2})$/.exec(finalTime);
+    if (!timeMatch) {
       Alert.alert('时间格式有误', '请输入 HH:MM 格式（如 09:30）');
       return;
     }
+    const hh = parseInt(timeMatch[1], 10);
+    const mm = parseInt(timeMatch[2], 10);
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+      Alert.alert('时间有误', '小时须在 00-23，分钟须在 00-59');
+      return;
+    }
+
     await addSchedule({ date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
     navigation.goBack();
   };

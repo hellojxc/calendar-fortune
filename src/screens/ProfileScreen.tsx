@@ -93,20 +93,20 @@ export default function ProfileScreen() {
         <View style={styles.fortuneCard}>
           <View style={styles.sectionLabel}>
             <Text style={styles.sectionTitle}>提醒设置</Text>
-            <Text style={styles.sectionSub}>明早 {profile.reminderTime}</Text>
+            <Text style={styles.sectionSub}>每日 {profile.reminderTime} 更新</Text>
           </View>
           <Text style={styles.reminderDesc}>
-            推送内容控制在一句话：今日关键词、适合做什么、需要避开什么。
+            运势提醒偏好：每天更新今日关键词与五行分布，建议聚焦方向。
           </Text>
           <View style={styles.chipRow}>
             <View style={[styles.chip, styles.chipJade]}>
-              <Text style={styles.chipTextJade}>早间提醒</Text>
+              <Text style={styles.chipTextJade}>五行运势</Text>
             </View>
             <View style={styles.chip}>
-              <Text style={styles.chipText}>日程前 15 分钟</Text>
+              <Text style={styles.chipText}>当日关键词</Text>
             </View>
             <View style={[styles.chip, styles.chipGold]}>
-              <Text style={styles.chipTextGold}>节气提醒</Text>
+              <Text style={styles.chipTextGold}>节气提示</Text>
             </View>
           </View>
         </View>

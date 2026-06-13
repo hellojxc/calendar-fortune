@@ -3,12 +3,6 @@
  */
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// ── Today tab stack ──
-export type TodayStackParamList = {
-  TodayMain: undefined;
-  AddSchedule: undefined;
-};
-
 // ── Fortune tab stack ──
 export type FortuneStackParamList = {
   FortuneMain: undefined;

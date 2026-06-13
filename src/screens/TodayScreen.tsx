@@ -9,7 +9,7 @@ import { loadBirthData, hasBirthData } from '../storage/profile';
 import { loadSchedule, deleteSchedule } from '../storage/schedule';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, ScheduleItem } from '../types';
-import type { TodayStackParamList } from '../navigation/types';
+import type { TodayStackParamList } from '../navigation/TodayStackNavigator';
 
 type Nav = NativeStackNavigationProp<TodayStackParamList, 'TodayMain'>;
 
@@ -95,7 +95,6 @@ export default function TodayScreen() {
           </View>
           <View style={styles.solarTerm}>
             <Text style={styles.solarTermName}>{fortune.solarTerm}</Text>
-            <Text style={styles.solarTermDay}>第 {fortune.solarTermDay} 天</Text>
           </View>
         </View>
 
