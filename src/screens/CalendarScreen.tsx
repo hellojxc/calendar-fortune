@@ -273,6 +273,18 @@ export default function CalendarScreen() {
           ))}
         </View>
 
+        {/* Schedule color legend */}
+        <View style={styles.legendRow}>
+          {Object.entries(SCHEDULE_DOT_COLORS).map(([type, color]) => (
+            <View key={type} style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: color }]} />
+              <Text style={styles.legendLabel}>
+                {{ meeting: '会议', personal: '个人', health: '健康', other: '其他' }[type] ?? type}
+              </Text>
+            </View>
+          ))}
+        </View>
+
         {/* Calendar grid */}
         <View style={styles.calendarGrid}>
           {visibleGrid.map((item, i) => (
@@ -410,7 +422,11 @@ const styles = StyleSheet.create({
   segText: { fontSize: 11, color: PROTO.muted },
   segTextActive: { color: PROTO.ink, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', marginVertical: 8 },
-  weekday: { flex: 1, textAlign: 'center', fontSize: 11, color: PROTO.muted },
+  weekday: { flex: 1, textAlign: 'center', fontSize: 11, color: PROTO.muted, fontWeight: '600' },
+  legendRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 8 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendLabel: { fontSize: 10, color: PROTO.muted },
   calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   day: {
     width: '13.2%', aspectRatio: 0.85, borderWidth: 1,

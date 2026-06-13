@@ -4,7 +4,7 @@ import {
   TextInput, Alert, Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Solar } from 'lunar-typescript';
+import { Solar, Lunar } from 'lunar-typescript';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { HOUR_CHIPS } from '../data/fixtures';
@@ -49,6 +49,10 @@ export default function EditProfileScreen({ navigation }: Props) {
   const [selectedHour, setSelectedHour] = useState(3); // 卯
   const [unknownHour, setUnknownHour] = useState(false);
   const [birthplace, setBirthplace] = useState('');
+  const [isLunar, setIsLunar] = useState(false);  // 公历/农历切换
+  const [lunarYear, setLunarYear] = useState('');  // 农历年输入
+  const [lunarMonth, setLunarMonth] = useState(''); // 农历月
+  const [lunarDay, setLunarDay] = useState('');     // 农历日
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,14 +82,40 @@ export default function EditProfileScreen({ navigation }: Props) {
   const handleSave = async () => {
     if (!name.trim()) { Alert.alert('请输入姓名'); return; }
 
-    const y = parseInt(birthY, 10);
-    const m = parseInt(birthM, 10);
-    const d = parseInt(birthD, 10);
+    let saveY: number | undefined;
+    let saveM: number | undefined;
+    let saveD: number | undefined;
+    let hasBirth = false;
 
-    let hasBirth = birthY !== '' || birthM !== '' || birthD !== '';
-    if (hasBirth && !isValidDate(y, m, d)) {
-      Alert.alert('日期有误', '请输入真实存在的日期（如 2 月无 31 日）');
-      return;
+    if (isLunar) {
+      const ly = parseInt(lunarYear, 10);
+      const lm = parseInt(lunarMonth, 10);
+      const ld = parseInt(lunarDay, 10);
+      if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
+        try {
+          const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
+          saveY = solar.getYear();
+          saveM = solar.getMonth();
+          saveD = solar.getDay();
+          hasBirth = true;
+        } catch {
+          Alert.alert('农历转换失败', '请确认农历日期有效');
+          return;
+        }
+      } else if (lunarYear !== '' || lunarMonth !== '' || lunarDay !== '') {
+        Alert.alert('日期不完整', '请填写完整的农历日期');
+        return;
+      }
+    } else {
+      const y = parseInt(birthY, 10);
+      const m = parseInt(birthM, 10);
+      const d = parseInt(birthD, 10);
+      hasBirth = birthY !== '' || birthM !== '' || birthD !== '';
+      if (hasBirth && !isValidDate(y, m, d)) {
+        Alert.alert('日期有误', '请输入真实存在的日期（如 2 月无 31 日）');
+        return;
+      }
+      if (hasBirth) { saveY = y; saveM = m; saveD = d; }
     }
 
     const profile: UserProfile = {
@@ -93,7 +123,7 @@ export default function EditProfileScreen({ navigation }: Props) {
       avatar: avatar.trim() || name.trim().charAt(0),
       reminderTime: /^\d{2}:\d{2}$/.test(reminderTime) ? reminderTime : '08:00',
       hasFortuneEnabled: true,
-      ...(hasBirth ? { birthYear: y, birthMonth: m, birthDay: d } : {}),
+      ...(hasBirth ? { birthYear: saveY, birthMonth: saveM, birthDay: saveD } : {}),
       birthHour: unknownHour ? null : selectedHour,
       birthplace: birthplace.trim() || undefined,
     };
@@ -142,31 +172,82 @@ export default function EditProfileScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* ── Birth date (公历) ── */}
+        {/* ── Birth date ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>出生日期（公历）</Text>
-
-          <View style={styles.dateRow}>
-            <View style={{ flex: 2 }}>
-              <Text style={styles.fieldLabel}>年</Text>
-              <TextInput style={styles.input} value={birthY} onChangeText={setBirthY} placeholder="1996" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={4} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>月</Text>
-              <TextInput style={styles.input} value={birthM} onChangeText={setBirthM} placeholder="8" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.fieldLabel}>日</Text>
-              <TextInput style={styles.input} value={birthD} onChangeText={setBirthD} placeholder="18" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
-            </View>
+          <View style={styles.sectionLabelRow}>
+            <Text style={styles.sectionTitle}>出生日期</Text>
+            <TouchableOpacity
+              style={styles.calendarToggle}
+              onPress={() => setIsLunar(!isLunar)}
+            >
+              <Text style={styles.calendarToggleText}>
+                {isLunar ? '农历 → 公历' : '公历 → 农历'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Lunar preview */}
-          {lunarPreview !== '' && (
-            <View style={styles.lunarPreview}>
-              <Text style={styles.lunarPreviewIcon}>🌙</Text>
-              <Text style={styles.lunarPreviewText}>{lunarPreview}</Text>
-            </View>
+          {!isLunar ? (
+            <>
+              <View style={styles.dateRow}>
+                <View style={{ flex: 2 }}>
+                  <Text style={styles.fieldLabel}>年</Text>
+                  <TextInput style={styles.input} value={birthY} onChangeText={setBirthY} placeholder="1996" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={4} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fieldLabel}>月</Text>
+                  <TextInput style={styles.input} value={birthM} onChangeText={setBirthM} placeholder="8" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fieldLabel}>日</Text>
+                  <TextInput style={styles.input} value={birthD} onChangeText={setBirthD} placeholder="18" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
+                </View>
+              </View>
+              {/* Lunar preview from solar */}
+              {lunarPreview !== '' && (
+                <View style={styles.lunarPreview}>
+                  <Text style={styles.lunarPreviewIcon}>🌙</Text>
+                  <Text style={styles.lunarPreviewText}>{lunarPreview}</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <>
+              <View style={styles.dateRow}>
+                <View style={{ flex: 2 }}>
+                  <Text style={styles.fieldLabel}>农历年</Text>
+                  <TextInput style={styles.input} value={lunarYear} onChangeText={setLunarYear} placeholder="一九九六" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={4} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fieldLabel}>月</Text>
+                  <TextInput style={styles.input} value={lunarMonth} onChangeText={setLunarMonth} placeholder="7" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fieldLabel}>日</Text>
+                  <TextInput style={styles.input} value={lunarDay} onChangeText={setLunarDay} placeholder="5" placeholderTextColor={Colors.muted} keyboardType="number-pad" maxLength={2} />
+                </View>
+              </View>
+              {/* Solar preview from lunar */}
+              {(() => {
+                const ly = parseInt(lunarYear, 10);
+                const lm = parseInt(lunarMonth, 10);
+                const ld = parseInt(lunarDay, 10);
+                if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
+                  try {
+                    const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
+                    const s = solar.toFullString();
+                    return (
+                      <View style={styles.lunarPreview}>
+                        <Text style={styles.lunarPreviewIcon}>☀</Text>
+                        <Text style={styles.lunarPreviewText}>公历 {s}</Text>
+                      </View>
+                    );
+                  } catch {
+                    return null;
+                  }
+                }
+                return null;
+              })()}
+            </>
           )}
         </View>
 
@@ -252,8 +333,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(47, 125, 99, 0.08)',
     borderWidth: 1, borderColor: 'rgba(47, 125, 99, 0.18)',
   },
-  lunarPreviewIcon: { fontSize: 16 },
-  lunarPreviewText: { fontSize: 13, color: PROTO.jade, fontWeight: '600', flex: 1 },
+  lunarPreviewIcon: { fontSize: 18, marginRight: 8 },
+  lunarPreviewText: { fontSize: 14, color: '#5a7d4b', fontWeight: '600' },
+  calendarToggle: {
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 6, borderWidth: 1, borderColor: '#b8872d',
+  },
+  calendarToggleText: { fontSize: 11, color: '#b8872d', fontWeight: '600' },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   switchLabel: { fontSize: 12, color: PROTO.muted },
   chipList: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
