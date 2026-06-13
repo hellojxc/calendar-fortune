@@ -15,7 +15,7 @@ import type { UserProfile } from '../types';
 import type { MeStackParamList } from '../navigation/types';
 
 /** Convert month + isLeap flag to negative-month param for Lunar.fromYmd */
-const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -m : m;
+const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -Math.abs(m) : Math.abs(m);
 
 type Props = NativeStackScreenProps<MeStackParamList, 'EditProfile'>;
 

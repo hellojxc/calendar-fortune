@@ -15,7 +15,7 @@ import type { UserProfile } from '../types';
 
 type Step = 'type' | 'date' | 'time' | 'done';
 
-const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -m : m;
+const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -Math.abs(m) : Math.abs(m);
 
 export default function OnboardingScreen() {
   const navigation = useNavigation<any>();
