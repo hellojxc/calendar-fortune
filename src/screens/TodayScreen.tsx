@@ -1,15 +1,17 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import FortuneRing from '../components/FortuneRing';
-import {
-  TODAY_FORTUNE,
-  TODAY_SCHEDULE,
-} from '../data/fixtures';
+import { TODAY_FORTUNE } from '../data/fixtures';
 import { loadBirthData } from '../storage/birthData';
+import { loadSchedule, deleteSchedule } from '../storage/schedule';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, ScheduleItem } from '../types';
+import type { TodayStackParamList } from '../navigation/types';
+
+type Nav = NativeStackNavigationProp<TodayStackParamList, 'TodayMain'>;
 
 const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -18,15 +20,13 @@ function formatTodayChinese(): { dateStr: string; weekday: string } {
   const m = now.getMonth() + 1;
   const d = now.getDate();
   const w = now.getDay();
-  return {
-    dateStr: `${m}月${d}日`,
-    weekday: WEEKDAY_NAMES[w],
-  };
+  return { dateStr: `${m}月${d}日`, weekday: WEEKDAY_NAMES[w] };
 }
 
 export default function TodayScreen() {
+  const navigation = useNavigation<Nav>();
   const [fortune, setFortune] = useState<DailyFortune>(TODAY_FORTUNE);
-  const [schedule] = useState<ScheduleItem[]>(TODAY_SCHEDULE);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [hasBirthData, setHasBirthData] = useState(false);
   const today = useMemo(() => formatTodayChinese(), []);
 
@@ -35,17 +35,34 @@ export default function TodayScreen() {
       let cancelled = false;
       (async () => {
         const birth = await loadBirthData();
-        if (!cancelled && birth) {
-          setFortune(computeDailyFortune(birth));
-          setHasBirthData(true);
-        } else if (!cancelled) {
-          setFortune(computeFallbackFortune());
-          setHasBirthData(false);
+        const items = await loadSchedule();
+        if (!cancelled) {
+          if (birth) {
+            setFortune(computeDailyFortune(birth));
+            setHasBirthData(true);
+          } else {
+            setFortune(computeFallbackFortune());
+            setHasBirthData(false);
+          }
+          setSchedule(items);
         }
       })();
       return () => { cancelled = true; };
     }, [])
   );
+
+  const handleDeleteItem = (item: ScheduleItem) => {
+    Alert.alert('删除日程', `确定删除「${item.title}」？`, [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '删除', style: 'destructive',
+        onPress: async () => {
+          await deleteSchedule(item.id);
+          setSchedule((prev) => prev.filter((s) => s.id !== item.id));
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -129,14 +146,19 @@ export default function TodayScreen() {
           </View>
           <View style={styles.scheduleList}>
             {schedule.map((item) => (
-              <View key={item.id} style={styles.scheduleItem}>
+              <TouchableOpacity
+                key={item.id}
+                style={styles.scheduleItem}
+                onLongPress={() => handleDeleteItem(item)}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.scheduleTime}>{item.time}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.scheduleTitle}>{item.title}</Text>
                   <Text style={styles.scheduleHint}>{item.hint}</Text>
                 </View>
                 <View style={[styles.dot, item.type === 'health' ? styles.dotRed : styles.dotGreen]} />
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -145,7 +167,7 @@ export default function TodayScreen() {
       </ScrollView>
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => Alert.alert('新增日程', '日程功能开发中')}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => navigation.navigate('AddSchedule')}>
         <Text style={styles.fabText}>＋</Text>
       </TouchableOpacity>
     </SafeAreaView>

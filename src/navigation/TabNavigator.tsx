@@ -1,20 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import TodayScreen from '../screens/TodayScreen';
+import TodayStackNavigator from './TodayStackNavigator';
 import CalendarScreen from '../screens/CalendarScreen';
 import FortuneStackNavigator from './FortuneStackNavigator';
-import ProfileScreen from '../screens/ProfileScreen';
+import MeStackNavigator from './MeStackNavigator';
 import { Colors } from '../theme';
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const ICONS: Record<string, { active: string; inactive: string }> = {
-  Today: { active: '📅', inactive: '📅' },
+  TodayTab: { active: '📅', inactive: '📅' },
   Calendar: { active: '🗓', inactive: '🗓' },
   FortuneTab: { active: '☯️', inactive: '☯' },
-  Me: { active: '👤', inactive: '👤' },
+  MeTab: { active: '👤', inactive: '👤' },
 };
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
@@ -65,8 +65,8 @@ export default function TabNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen
-        name="Today"
-        component={TodayScreen}
+        name="TodayTab"
+        component={TodayStackNavigator}
         options={{ tabBarLabel: '今日' }}
       />
       <Tab.Screen
@@ -80,8 +80,8 @@ export default function TabNavigator() {
         options={{ tabBarLabel: '运势' }}
       />
       <Tab.Screen
-        name="Me"
-        component={ProfileScreen}
+        name="MeTab"
+        component={MeStackNavigator}
         options={{ tabBarLabel: '我的' }}
       />
     </Tab.Navigator>

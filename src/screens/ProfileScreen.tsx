@@ -1,20 +1,34 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
-import { DEFAULT_PROFILE, SETTINGS_ITEMS } from '../data/fixtures';
+import { SETTINGS_ITEMS } from '../data/fixtures';
 import { deleteBirthData, hasBirthData } from '../storage/birthData';
+import { loadProfile } from '../storage/profile';
+import type { UserProfile } from '../types';
+import type { MeStackParamList } from '../navigation/types';
+
+type Nav = NativeStackNavigationProp<MeStackParamList, 'MeMain'>;
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<Nav>();
   const [birthDataSet, setBirthDataSet] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>({
+    name: '', avatar: '', reminderTime: '08:00', hasFortuneEnabled: true,
+  });
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
       (async () => {
         const exists = await hasBirthData();
-        if (!cancelled) setBirthDataSet(exists);
+        const p = await loadProfile();
+        if (!cancelled) {
+          setBirthDataSet(exists);
+          setProfile(p);
+        }
       })();
       return () => { cancelled = true; };
     }, [])
@@ -40,17 +54,17 @@ export default function ProfileScreen() {
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHead}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{DEFAULT_PROFILE.avatar}</Text>
+            <Text style={styles.avatarText}>{profile.avatar}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>{DEFAULT_PROFILE.name}</Text>
+            <Text style={styles.profileName}>{profile.name}</Text>
             <Text style={styles.profileStatus}>
               {birthDataSet
-                ? `已开启每日五行提醒 · ${DEFAULT_PROFILE.reminderTime} 推送`
+                ? `已开启每日五行提醒 · ${profile.reminderTime} 推送`
                 : '尚未设置生辰资料'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => Alert.alert('编辑', '编辑资料功能开发中')}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.iconBtnText}>✎</Text>
           </TouchableOpacity>
         </View>
@@ -58,7 +72,7 @@ export default function ProfileScreen() {
         <View style={styles.fortuneCard}>
           <View style={styles.sectionLabel}>
             <Text style={styles.sectionTitle}>提醒设置</Text>
-            <Text style={styles.sectionSub}>明早 {DEFAULT_PROFILE.reminderTime}</Text>
+            <Text style={styles.sectionSub}>明早 {profile.reminderTime}</Text>
           </View>
           <Text style={styles.reminderDesc}>
             推送内容控制在一句话：今日关键词、适合做什么、需要避开什么。

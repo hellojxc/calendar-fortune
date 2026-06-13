@@ -3,19 +3,28 @@
  */
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+// ── Today tab stack ──
+export type TodayStackParamList = {
+  TodayMain: undefined;
+  AddSchedule: undefined;
+};
+
 // ── Fortune tab stack ──
 export type FortuneStackParamList = {
   FortuneMain: undefined;
   BirthData: undefined;
 };
 
-export type FortuneMainScreenProps = NativeStackScreenProps<FortuneStackParamList, 'FortuneMain'>;
-export type BirthDataScreenProps = NativeStackScreenProps<FortuneStackParamList, 'BirthData'>;
+// ── Me tab stack ──
+export type MeStackParamList = {
+  MeMain: undefined;
+  EditProfile: undefined;
+};
 
-// ── Tab param list ──
+// ── Tab param list (root) ──
 export type TabParamList = {
-  Today: undefined;
+  TodayTab: undefined;
   Calendar: undefined;
   FortuneTab: undefined;
-  Me: undefined;
+  MeTab: undefined;
 };
