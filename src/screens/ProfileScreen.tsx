@@ -154,10 +154,35 @@ export default function ProfileScreen() {
             </View>
             <View style={[styles.swatch, { backgroundColor: Colors.gold }]}>
               <View style={[styles.swatchHalf, { backgroundColor: '#f5ebd6' }]} />
-            </View>
           </View>
         </View>
-      </ScrollView>
+        </View>
+
+        {/* Privacy & data */}
+            <View style={[styles.section, { marginTop: 20 }]}>
+            <View style={styles.sectionLabel}>
+              <Text style={styles.sectionTitle}>隐私与数据</Text>
+            </View>
+            <Text style={styles.privacyNote}>✦ 所有生辰资料仅保存在本机，不上传任何服务器</Text>
+            <View style={styles.privacyActions}>
+              <TouchableOpacity
+                style={styles.privacyBtn}
+                activeOpacity={0.7}
+                onPress={() => Alert.alert('导出备份', '将生辰资料以文本形式复制到剪贴板')}
+              >
+                <Text style={styles.privacyBtnText}>导出备份</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.privacyBtn, { borderColor: PROTO.cinnabar }]}
+                activeOpacity={0.7}
+                onPress={handleDelete}
+              >
+                <Text style={[styles.privacyBtnText, { color: PROTO.cinnabar }]}>清除数据</Text>
+              </TouchableOpacity>
+            </View>
+            </View>
+
+            </ScrollView>
     </SafeAreaView>
   );
 }
@@ -169,6 +194,7 @@ const PROTO = {
   line: '#dfd1bd',
   jade: '#2f7d63',
   gold: '#b8872d',
+  cinnabar: '#a8422d',
 };
 
 const styles = StyleSheet.create({
@@ -251,4 +277,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   swatchHalf: { width: '50%', height: '100%' },
+  privacyNote: { fontSize: 12, color: PROTO.muted, marginBottom: 10, lineHeight: 18 },
+  privacyActions: { flexDirection: 'row', gap: 10 },
+  privacyBtn: {
+    flex: 1, paddingVertical: 10, borderRadius: 8,
+    borderWidth: 1, borderColor: PROTO.line, alignItems: 'center',
+  },
+  privacyBtnText: { fontSize: 12, fontWeight: '600', color: PROTO.ink },
 });
