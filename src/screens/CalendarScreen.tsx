@@ -88,6 +88,32 @@ export default function CalendarScreen() {
     [viewYear, viewMonth, selectedDay]
   );
 
+  // Week view: show only the 7-day row containing the selected day (or today)
+  const visibleGrid = useMemo(() => {
+    if (viewMode === 'month') return grid;
+    const anchorDay = selectedDay ?? (viewYear === today.getFullYear() && viewMonth === today.getMonth() + 1 ? today.getDate() : 1);
+    const anchorIdx = grid.findIndex(
+      (d) => d.day === anchorDay && !d.isOtherMonth
+    );
+    const rowStart = anchorIdx >= 0 ? Math.floor(anchorIdx / 7) * 7 : 0;
+    return grid.slice(rowStart, rowStart + 7);
+  }, [viewMode, grid, selectedDay, viewYear, viewMonth, today]);
+
+  // Week nav: move by 7 days
+  const goPrevWeek = () => {
+    const d = selectedDay ?? today.getDate();
+    const newDay = d - 7;
+    if (newDay < 1) goPrevMonth();
+    else setSelectedDay(newDay);
+  };
+  const goNextWeek = () => {
+    const d = selectedDay ?? today.getDate();
+    const daysInCur = daysInMonth(viewYear, viewMonth);
+    const newDay = d + 7;
+    if (newDay > daysInCur) goNextMonth();
+    else setSelectedDay(newDay);
+  };
+
   const selectedFortune = useMemo(() => {
     const d = selectedDay ?? today.getDate();
     return computeFallbackFortune(new Date(viewYear, viewMonth - 1, d));
@@ -122,13 +148,29 @@ export default function CalendarScreen() {
         {/* Month switch */}
         <View style={styles.monthSwitch}>
           <View style={styles.monthNav}>
-            <TouchableOpacity onPress={goPrevMonth} style={styles.navBtn}>
+            <TouchableOpacity
+              onPress={viewMode === 'month' ? goPrevMonth : goPrevWeek}
+              style={styles.navBtn}
+            >
               <Text style={styles.navBtnText}>‹</Text>
             </TouchableOpacity>
             <View>
-              <Text style={styles.monthTitle}>{viewYear} 年 {viewMonth} 月</Text>
+              <Text style={styles.monthTitle}>
+                {viewMode === 'month'
+                  ? `${viewYear} 年 ${viewMonth} 月`
+                  : (() => {
+                      const first = visibleGrid[0];
+                      const last = visibleGrid[visibleGrid.length - 1];
+                      const m1 = viewMonth - (first.isOtherMonth && first.day > 15 ? 1 : 0);
+                      const m2 = viewMonth + (last.isOtherMonth && last.day < 15 ? 1 : 0);
+                      return `${viewYear}年${m1}月${first.day}日 – ${m2}月${last.day}日`;
+                    })()}
+              </Text>
             </View>
-            <TouchableOpacity onPress={goNextMonth} style={styles.navBtn}>
+            <TouchableOpacity
+              onPress={viewMode === 'month' ? goNextMonth : goNextWeek}
+              style={styles.navBtn}
+            >
               <Text style={styles.navBtnText}>›</Text>
             </TouchableOpacity>
           </View>
@@ -157,7 +199,7 @@ export default function CalendarScreen() {
 
         {/* Calendar grid */}
         <View style={styles.calendarGrid}>
-          {grid.map((item, i) => (
+          {visibleGrid.map((item, i) => (
             <TouchableOpacity
               key={i}
               style={[
