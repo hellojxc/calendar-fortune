@@ -102,6 +102,9 @@ export default function CalendarScreen() {
     [viewYear, viewMonth, selectedDay, scheduleDates]
   );
 
+  // Fallback day capped to the view month's actual day count (e.g. March 31 browsing Feb → capped to 28/29)
+  const effectiveDay = selectedDay ?? Math.min(today.getDate(), daysInMonth(viewYear, viewMonth));
+
   // Week view: show only the 7-day row containing the selected day (or today)
   const visibleGrid = useMemo(() => {
     if (viewMode === 'month') return grid;
@@ -115,7 +118,7 @@ export default function CalendarScreen() {
 
   // Week nav: use Date arithmetic for correct cross-month/year jumping
   const goPrevWeek = () => {
-    const d = selectedDay ?? today.getDate();
+    const d = effectiveDay;
     const cur = new Date(viewYear, viewMonth - 1, d);
     cur.setDate(cur.getDate() - 7);
     setViewYear(cur.getFullYear());
@@ -123,7 +126,7 @@ export default function CalendarScreen() {
     setSelectedDay(cur.getDate());
   };
   const goNextWeek = () => {
-    const d = selectedDay ?? today.getDate();
+    const d = effectiveDay;
     const cur = new Date(viewYear, viewMonth - 1, d);
     cur.setDate(cur.getDate() + 7);
     setViewYear(cur.getFullYear());
@@ -132,12 +135,12 @@ export default function CalendarScreen() {
   };
 
   const selectedFortune = useMemo(() => {
-    const d = selectedDay ?? today.getDate();
+    const d = effectiveDay;
     return computeFallbackFortune(new Date(viewYear, viewMonth - 1, d));
-  }, [viewYear, viewMonth, selectedDay]);
+  }, [viewYear, viewMonth, effectiveDay]);
 
   const selectedLunarStr = useMemo(() => {
-    const d = selectedDay ?? today.getDate();
+    const d = effectiveDay;
     try {
       const solar = Solar.fromYmd(viewYear, viewMonth, d);
       const lunar = solar.getLunar();
@@ -153,10 +156,10 @@ export default function CalendarScreen() {
 
   // Schedules for selected day
   const selectedDaySchedules = useMemo(() => {
-    const d = selectedDay ?? today.getDate();
-    const ds = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const d = effectiveDay;
+    const ds = `${viewYear}-${String(viewMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     return allSchedules.filter((s) => s.date === ds);
-  }, [viewYear, viewMonth, selectedDay, allSchedules]);
+  }, [viewYear, viewMonth, effectiveDay, allSchedules]);
 
   const goPrevMonth = () => {
     if (viewMonth === 1) { setViewYear(viewYear - 1); setViewMonth(12); }
@@ -311,7 +314,7 @@ export default function CalendarScreen() {
         style={styles.fab}
         activeOpacity={0.8}
         onPress={() => {
-          const d = selectedDay ?? today.getDate();
+          const d = effectiveDay;
           const ds = `${viewYear}-${String(viewMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
           navigation.navigate('AddSchedule', { date: ds } as any);
         }}
