@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Solar, Lunar } from 'lunar-typescript';
+import { Solar, Lunar, LunarYear } from 'lunar-typescript';
 import { saveProfile } from '../storage/profile';
 import { setOnboardingDone } from '../storage/onboarding';
 import { Colors } from '../theme';
@@ -88,6 +88,7 @@ export default function OnboardingScreen() {
           birthM = solar.getMonth();
           birthD = solar.getDay();
         } catch {
+          Alert.alert('日期有误', '农历转换失败，请检查日期是否有效');
           return;
         }
       } else {
@@ -123,8 +124,27 @@ export default function OnboardingScreen() {
   const stepIndex = step === 'nickname' ? 0 : step === 'type' ? 1 : step === 'date' ? 2 : step === 'time' ? 3 : 4;
   const totalSteps = 5;
 
-  const monthDays = useMemo(() => daysInMonth(pickYear, pickMonth), [pickYear, pickMonth]);
-  const firstDayOfWeek = useMemo(() => new Date(pickYear, pickMonth - 1, 1).getDay(), [pickYear, pickMonth]);
+  const monthDays = useMemo(() => {
+    if (isLunar) {
+      try {
+        return (LunarYear.fromYear(pickYear).getMonth(pickMonth) as any).getDayCount();
+      } catch {
+        return 29;
+      }
+    }
+    return daysInMonth(pickYear, pickMonth);
+  }, [pickYear, pickMonth, isLunar]);
+
+  const firstDayOfWeek = useMemo(() => {
+    if (isLunar) {
+      try {
+        return Lunar.fromYmd(pickYear, toLunarMonth(pickMonth, isLeapMonth), 1).getSolar().getWeek();
+      } catch {
+        return 0;
+      }
+    }
+    return new Date(pickYear, pickMonth - 1, 1).getDay();
+  }, [pickYear, pickMonth, isLunar, isLeapMonth]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -197,6 +217,9 @@ export default function OnboardingScreen() {
 
             {/* Year/Month selector */}
             <View style={styles.ymSelector}>
+              <TouchableOpacity onPress={() => setPickYear(pickYear - 1)}>
+                <Text style={styles.ymArrow}>«</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={() => { if (pickMonth === 1) { setPickYear(pickYear - 1); setPickMonth(12); } else setPickMonth(pickMonth - 1); }}>
                 <Text style={styles.ymArrow}>‹</Text>
               </TouchableOpacity>
@@ -205,6 +228,9 @@ export default function OnboardingScreen() {
               </Text>
               <TouchableOpacity onPress={() => { if (pickMonth === 12) { setPickYear(pickYear + 1); setPickMonth(1); } else setPickMonth(pickMonth + 1); }}>
                 <Text style={styles.ymArrow}>›</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setPickYear(pickYear + 1)}>
+                <Text style={styles.ymArrow}>»</Text>
               </TouchableOpacity>
             </View>
 

@@ -199,8 +199,8 @@ export default function CalendarScreen() {
     setSelectedDay(item.day);
   };
 
-  const selectedDate = selectedDay
-    ? `${viewYear}年${viewMonth}月${selectedDay}日`
+  const selectedDate = effectiveDay
+    ? `${viewYear}年${viewMonth}月${effectiveDay}日`
     : '未选择';
 
   return (

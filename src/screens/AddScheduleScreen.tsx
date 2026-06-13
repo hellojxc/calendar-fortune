@@ -128,6 +128,7 @@ export default function AddScheduleScreen() {
               let y = parseInt(dateY, 10);
               if (m === 1) { y--; m = 12; } else { m--; }
               setDateY(String(y)); setDateM(String(m));
+              setDateD(String(Math.min(parseInt(dateD, 10), daysInMonth(y, m))));
             }}>
               <Text style={styles.monthNavArrow}>‹</Text>
             </TouchableOpacity>
@@ -137,6 +138,7 @@ export default function AddScheduleScreen() {
               let y = parseInt(dateY, 10);
               if (m === 12) { y++; m = 1; } else { m++; }
               setDateY(String(y)); setDateM(String(m));
+              setDateD(String(Math.min(parseInt(dateD, 10), daysInMonth(y, m))));
             }}>
               <Text style={styles.monthNavArrow}>›</Text>
             </TouchableOpacity>
