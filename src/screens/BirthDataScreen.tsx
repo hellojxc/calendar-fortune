@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { HOUR_CHIPS, BAZI_PREVIEW } from '../data/fixtures';
 import { saveBirthData } from '../storage/birthData';
-import { computeBazi } from '../services/fortune';
+import { computeBazi, isValidDate } from '../services/fortune';
 import type { BirthData } from '../types';
 import type { FortuneStackParamList } from '../navigation/types';
 
@@ -25,8 +25,8 @@ export default function BirthDataScreen({ navigation }: Props) {
     const y = parseInt(year, 10);
     const m = parseInt(month, 10);
     const d = parseInt(day, 10);
-    if (isNaN(y) || isNaN(m) || isNaN(d) || y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) {
-      Alert.alert('日期有误', '请输入有效的出生日期');
+    if (!isValidDate(y, m, d)) {
+      Alert.alert('日期有误', '请输入真实存在的日期（如 2 月无 31 日）');
       return;
     }
 
@@ -186,7 +186,12 @@ export default function BirthDataScreen({ navigation }: Props) {
             </View>
             <View style={styles.pillar}>
               <Text style={styles.pillarStem}>
-                {bazi?.hour ? `${bazi.hour.stem}${bazi.hour.branch}` : `${BAZI_PREVIEW.hour.stem}${BAZI_PREVIEW.hour.branch}`}
+                {(() => {
+                  if (bazi?.hour) return `${bazi.hour.stem}${bazi.hour.branch}`;
+                  if (unknownHour || bazi?.hour === null) return '未知';
+                  if (!showBazi) return `${BAZI_PREVIEW.hour.stem}${BAZI_PREVIEW.hour.branch}`;
+                  return '未知';
+                })()}
               </Text>
               <Text style={styles.pillarType}>时柱</Text>
             </View>

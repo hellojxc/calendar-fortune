@@ -185,3 +185,20 @@ export function computeDailyFortune(birth: BirthData, date: Date = new Date()): 
     trend: TRENDS[hashToInt(seed + 'trend') % TRENDS.length],
   };
 }
+
+// ── Helpers ──
+
+/** Generic reference birth for fallback when user hasn't set their own. */
+const GENERIC_BIRTH: BirthData = { year: 1996, month: 1, day: 1, hour: null, birthplace: '未知' };
+
+/** Compute a fallback fortune for today without user birth data. Date/lunar/stem branch are always consistent. */
+export function computeFallbackFortune(date: Date = new Date()): DailyFortune {
+  return computeDailyFortune(GENERIC_BIRTH, date);
+}
+
+/** Validate that year/month/day form a real calendar date. */
+export function isValidDate(y: number, m: number, d: number): boolean {
+  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() + 1 === m && dt.getDate() === d;
+}

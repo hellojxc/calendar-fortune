@@ -8,7 +8,7 @@ import {
   TODAY_SCHEDULE,
 } from '../data/fixtures';
 import { loadBirthData } from '../storage/birthData';
-import { computeDailyFortune } from '../services/fortune';
+import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, ScheduleItem } from '../types';
 
 const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -39,7 +39,7 @@ export default function TodayScreen() {
           setFortune(computeDailyFortune(birth));
           setHasBirthData(true);
         } else if (!cancelled) {
-          setFortune(TODAY_FORTUNE);
+          setFortune(computeFallbackFortune());
           setHasBirthData(false);
         }
       })();

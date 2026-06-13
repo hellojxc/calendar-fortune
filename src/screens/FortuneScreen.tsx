@@ -7,7 +7,7 @@ import { Colors } from '../theme';
 import ElementBar from '../components/ElementBar';
 import { TODAY_FORTUNE } from '../data/fixtures';
 import { loadBirthData } from '../storage/birthData';
-import { computeDailyFortune } from '../services/fortune';
+import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, BirthData } from '../types';
 import type { FortuneStackParamList } from '../navigation/types';
 
@@ -26,10 +26,10 @@ export default function FortuneScreen() {
         const birth = await loadBirthData();
         if (!cancelled && birth) {
           const computed = computeDailyFortune(birth);
-          setFortune(computed);
+          setFortune(computeDailyFortune(birth));
           setHasBirthData(true);
         } else if (!cancelled) {
-          setFortune(TODAY_FORTUNE);
+          setFortune(computeFallbackFortune());
           setHasBirthData(false);
         }
       })();
