@@ -5,7 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import FortuneRing from '../components/FortuneRing';
 import { TODAY_FORTUNE } from '../data/fixtures';
-import { loadBirthData } from '../storage/birthData';
+import { loadBirthData, hasBirthData } from '../storage/profile';
 import { loadSchedule, deleteSchedule } from '../storage/schedule';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, ScheduleItem } from '../types';

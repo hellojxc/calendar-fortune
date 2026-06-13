@@ -106,6 +106,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   avatar: '陈',
   reminderTime: '08:00',
   hasFortuneEnabled: true,
+  birthHour: null,
 };
 
 // ── Settings ──

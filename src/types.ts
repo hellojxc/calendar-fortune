@@ -2,7 +2,7 @@
  * Shared types for 时序日历. All screen data shapes live here.
  */
 
-// ── Birth data ──
+// ── Birth data (extractable from UserProfile) ──
 
 export interface BirthData {
   /** Gregorian year, e.g. 1996 */
@@ -85,13 +85,35 @@ export interface CalendarDay {
   eventCount?: number;
 }
 
-// ── Profile ──
+// ── Unified Profile (personal info + birth data) ──
 
 export interface UserProfile {
   name: string;
-  avatar: string;       // single char, surname
-  reminderTime: string; // e.g. "08:00"
+  avatar: string;
+  reminderTime: string;
   hasFortuneEnabled: boolean;
+  /** Gregorian birth year, e.g. 1996 */
+  birthYear?: number;
+  /** 1-based birth month */
+  birthMonth?: number;
+  /** 1-based birth day */
+  birthDay?: number;
+  /** Chinese hour index 0-11, or null if unknown */
+  birthHour: number | null;
+  /** Birth city */
+  birthplace?: string;
+}
+
+/** Extract BirthData from profile (returns null if birth date incomplete). */
+export function profileToBirthData(p: UserProfile): BirthData | null {
+  if (!p.birthYear || !p.birthMonth || !p.birthDay) return null;
+  return {
+    year: p.birthYear,
+    month: p.birthMonth,
+    day: p.birthDay,
+    hour: p.birthHour,
+    birthplace: p.birthplace || '未知',
+  };
 }
 
 // ── Settings ──

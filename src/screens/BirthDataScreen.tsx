@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { HOUR_CHIPS, BAZI_PREVIEW } from '../data/fixtures';
-import { saveBirthData } from '../storage/birthData';
+import { saveProfile, loadProfile } from '../storage/profile';
 import { computeBazi, isValidDate } from '../services/fortune';
 import type { BirthData } from '../types';
 import type { FortuneStackParamList } from '../navigation/types';
@@ -40,7 +40,16 @@ export default function BirthDataScreen({ navigation }: Props) {
 
     try {
       const computed = computeBazi(birthData);
-      await saveBirthData(birthData);
+      // Merge birth data into unified profile
+      const existing = await loadProfile();
+      await saveProfile({
+        ...existing,
+        birthYear: y,
+        birthMonth: m,
+        birthDay: d,
+        birthHour: unknownHour ? null : selectedHour,
+        birthplace: birthplace || '未知',
+      });
       setBazi(computed);
       setShowBazi(true);
       Alert.alert('保存成功', '生辰资料已保存，每日运势将基于您的八字生成。', [

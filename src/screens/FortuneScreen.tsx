@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import ElementBar from '../components/ElementBar';
 import { TODAY_FORTUNE } from '../data/fixtures';
-import { loadBirthData } from '../storage/birthData';
+import { loadBirthData } from '../storage/profile';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
 import type { DailyFortune, BirthData } from '../types';
 import type { FortuneStackParamList } from '../navigation/types';

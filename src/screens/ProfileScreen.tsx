@@ -5,8 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { SETTINGS_ITEMS } from '../data/fixtures';
-import { deleteBirthData, hasBirthData } from '../storage/birthData';
-import { loadProfile } from '../storage/profile';
+import { loadProfile, hasBirthData, clearBirthData } from '../storage/profile';
 import type { UserProfile } from '../types';
 import type { MeStackParamList } from '../navigation/types';
 
@@ -17,6 +16,7 @@ export default function ProfileScreen() {
   const [birthDataSet, setBirthDataSet] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     name: '', avatar: '', reminderTime: '08:00', hasFortuneEnabled: true,
+    birthHour: null,
   });
 
   useFocusEffect(
@@ -41,9 +41,9 @@ export default function ProfileScreen() {
         text: '删除',
         style: 'destructive',
         onPress: async () => {
-          await deleteBirthData();
+          await clearBirthData();
           setBirthDataSet(false);
-          Alert.alert('已删除', '个人资料已清除。');
+          setProfile((prev) => ({ ...prev, birthYear: undefined, birthMonth: undefined, birthDay: undefined, birthHour: null, birthplace: undefined }));
         },
       },
     ]);
@@ -68,6 +68,27 @@ export default function ProfileScreen() {
             <Text style={styles.iconBtnText}>✎</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Birth data card (when set) */}
+        {birthDataSet && profile.birthYear != null && (
+          <View style={styles.birthCard}>
+            <View style={styles.sectionLabel}>
+              <Text style={styles.sectionTitle}>生辰资料</Text>
+            </View>
+            <Text style={styles.birthText}>
+              公历 {profile.birthYear}年{profile.birthMonth}月{profile.birthDay}日{' '}
+              {profile.birthHour != null
+                ? `${['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'][profile.birthHour]}时`
+                : '时辰未知'}
+            </Text>
+            {profile.birthplace && (
+              <Text style={styles.birthPlace}>出生地 · {profile.birthplace}</Text>
+            )}
+            <TouchableOpacity style={styles.clearBirthBtn} onPress={handleDelete}>
+              <Text style={styles.clearBirthText}>清除生辰资料</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.fortuneCard}>
           <View style={styles.sectionLabel}>
@@ -183,6 +204,19 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 15, fontWeight: '700', color: PROTO.ink },
   sectionSub: { fontSize: 11, color: PROTO.muted },
   reminderDesc: { fontSize: 10, color: PROTO.muted, lineHeight: 16, marginBottom: 10 },
+  birthCard: {
+    borderWidth: 1, borderColor: PROTO.line, borderRadius: 8,
+    padding: 12, backgroundColor: PROTO.surface,
+    marginBottom: 12,
+  },
+  birthText: { fontSize: 13, color: PROTO.ink, marginTop: 6, fontWeight: '600' },
+  birthPlace: { fontSize: 11, color: PROTO.muted, marginTop: 4 },
+  clearBirthBtn: {
+    marginTop: 10, paddingVertical: 6,
+    borderWidth: 1, borderColor: '#e8c0b8', borderRadius: 6,
+    backgroundColor: '#fef5f2', alignItems: 'center',
+  },
+  clearBirthText: { fontSize: 11, color: '#a8422d', fontWeight: '600' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   chip: {
     borderWidth: 1, borderColor: PROTO.line,
