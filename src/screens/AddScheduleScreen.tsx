@@ -37,7 +37,7 @@ export default function AddScheduleScreen() {
   const today = new Date();
   // Pre-fill date from route param (e.g. passed from Calendar) or from edit
   const initDate = params?.date ? new Date(params.date + 'T00:00:00') : (editItem?.date ? new Date(editItem.date + 'T00:00:00') : today);
-  const [title, setTitle] = useState(editItem?.title ?? '');
+  const [title, setTitle] = useState(editItem?.title ?? params?.prefillTitle ?? '');
   const [dateY, setDateY] = useState(String(initDate.getFullYear()));
   const [dateM, setDateM] = useState(String(initDate.getMonth() + 1));
   const [dateD, setDateD] = useState(String(initDate.getDate()));
@@ -45,8 +45,8 @@ export default function AddScheduleScreen() {
   const [time, setTime] = useState(editItem?.time ?? params?.prefillTime ?? '09:00');
   const [customTime, setCustomTime] = useState('');
   const [useCustomTime, setUseCustomTime] = useState(false);
-  const [hint, setHint] = useState(editItem?.hint ?? '');
-  const [type, setType] = useState<ScheduleItem['type']>((editItem?.type as ScheduleItem['type']) ?? 'meeting');
+  const [hint, setHint] = useState(editItem?.hint ?? params?.prefillHint ?? '');
+  const [type, setType] = useState<ScheduleItem['type']>((editItem?.type as ScheduleItem['type']) ?? (params?.prefillType as ScheduleItem['type']) ?? 'meeting');
 
   const dateStr = useMemo(() => {
     const y = dateY.padStart(4, '0');

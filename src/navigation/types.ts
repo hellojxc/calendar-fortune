@@ -8,6 +8,9 @@ export type AddScheduleParams = {
   date?: string;
   editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string };
   prefillTime?: string;
+  prefillTitle?: string;
+  prefillHint?: string;
+  prefillType?: string;
 };
 
 // ── Fortune tab stack ──

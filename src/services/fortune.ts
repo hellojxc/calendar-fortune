@@ -75,6 +75,9 @@ const SUITABLE_POOL = [
   '深度工作、技能练习、预算整理、提前准备下周。',
 ];
 
+const GOOD_POOL = ['整理计划', '推进沟通', '学习提升', '约见合作', '复盘调整', '适度运动', '清点待办', '创意输出'];
+const BAD_POOL = ['仓促决定', '贸然投资', '激烈争执', '签订合约', '开启新项', '过度消耗', '轻信他人', '冒险尝试'];
+
 const COLORS = ['青绿', '浅蓝', '米白', '暖黄', '淡紫'];
 const TIMES = ['07:00-09:00', '09:00-11:00', '11:00-13:00', '13:00-15:00', '15:00-17:00'];
 const TRENDS = ['均衡偏动', '偏静为宜', '小步快跑', '先稳后进', '顺势而为'];
@@ -154,6 +157,8 @@ export function computeDailyFortune(birth: BirthData, date: Date = new Date()): 
     stemBranch,
     solarTerm: termName,
     dayMasterElement: dayStemElement,
+    todayGood: GOOD_POOL[hashToInt(seed + 'gd') % GOOD_POOL.length],
+    todayBad: BAD_POOL[hashToInt(seed + 'bd') % BAD_POOL.length],
     keyword: KEYWORDS_POOL[hashToInt(seed + 'kw') % KEYWORDS_POOL.length],
     overallScore,
     description: (() => {

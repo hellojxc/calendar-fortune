@@ -102,11 +102,11 @@ export default function TodayScreen() {
         <View style={styles.quickGrid}>
           <View style={styles.quickTile}>
             <Text style={styles.quickLabel}>今日宜</Text>
-            <Text style={styles.quickValue}>整理计划</Text>
+            <Text style={styles.quickValue}>{fortune.todayGood}</Text>
           </View>
           <View style={styles.quickTile}>
             <Text style={styles.quickLabel}>今日忌</Text>
-            <Text style={styles.quickValue}>仓促决定</Text>
+            <Text style={styles.quickValue}>{fortune.todayBad}</Text>
           </View>
         </View>
 
@@ -160,6 +160,9 @@ export default function TodayScreen() {
               navigation.navigate('AddSchedule', {
                 date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`,
                 prefillTime: startTime,
+                prefillTitle: '重要事项',
+                prefillHint: `今日建议：${fortune.keyword}`,
+                prefillType: 'personal',
               } as any);
             }}
           >

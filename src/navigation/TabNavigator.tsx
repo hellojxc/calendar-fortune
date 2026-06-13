@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import TodayStackNavigator from './TodayStackNavigator';
 import CalendarStackNavigator from './CalendarStackNavigator';
 import FortuneStackNavigator from './FortuneStackNavigator';
@@ -10,11 +11,11 @@ import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const ICONS: Record<string, { active: string; inactive: string }> = {
-  TodayTab: { active: '📅', inactive: '📅' },
-  Calendar: { active: '🗓', inactive: '🗓' },
-  FortuneTab: { active: '☯️', inactive: '☯' },
-  MeTab: { active: '👤', inactive: '👤' },
+const ICONS: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
+  TodayTab: { active: 'today', inactive: 'today-outline' },
+  Calendar: { active: 'calendar', inactive: 'calendar-outline' },
+  FortuneTab: { active: 'sparkles', inactive: 'sparkles-outline' },
+  MeTab: { active: 'person', inactive: 'person-outline' },
 };
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
@@ -45,9 +46,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             style={[styles.tab, isFocused && styles.tabActive]}
             activeOpacity={0.7}
           >
-            <Text style={styles.tabIcon}>
-              {isFocused ? icons.active : icons.inactive}
-            </Text>
+            <Ionicons
+              name={isFocused ? icons.active : icons.inactive}
+              size={22}
+              color={isFocused ? Colors.fire : Colors.muted}
+            />
             <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>
               {label}
             </Text>
@@ -110,7 +113,6 @@ const styles = StyleSheet.create({
   tabActive: {
     backgroundColor: Colors.fireSoft,
   },
-  tabIcon: { fontSize: 20 },
-  tabLabel: { fontSize: 10, color: Colors.muted },
+  tabLabel: { fontSize: 12, color: Colors.muted },
   tabLabelActive: { color: Colors.fire, fontWeight: '600' },
 });

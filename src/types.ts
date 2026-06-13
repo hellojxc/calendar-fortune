@@ -52,6 +52,8 @@ export interface DailyFortune {
   stemBranch: string;        // e.g. 丙午月 戊辰日
   solarTerm: string;         // e.g. 芒种
   dayMasterElement: string;  // user's day stem element, e.g. 火
+  todayGood: string;         // e.g. 推进沟通
+  todayBad: string;          // e.g. 冒险投资
   keyword: string;           // e.g. 稳中求进
   overallScore: number;      // 0-100
   description: string;       // main fortune text
