@@ -190,6 +190,8 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
             <View style={styles.privacyActions}>
+              {/* Export hidden until functional */}
+              {false && (
               <TouchableOpacity
                 style={styles.privacyBtn}
                 activeOpacity={0.7}
@@ -197,6 +199,7 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.privacyBtnText}>导出备份</Text>
               </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[styles.privacyBtn, { borderColor: PROTO.cinnabar }]}
                 activeOpacity={0.7}

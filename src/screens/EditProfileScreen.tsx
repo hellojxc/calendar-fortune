@@ -9,6 +9,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import { HOUR_CHIPS } from '../data/fixtures';
 import { loadProfile, saveProfile } from '../storage/profile';
+import { getPermissionStatus, scheduleDailyReminder } from '../services/notifications';
 import { isValidDate } from '../services/fortune';
 import type { UserProfile } from '../types';
 import type { MeStackParamList } from '../navigation/types';
@@ -91,20 +92,35 @@ export default function EditProfileScreen({ navigation }: Props) {
       const ly = parseInt(lunarYear, 10);
       const lm = parseInt(lunarMonth, 10);
       const ld = parseInt(lunarDay, 10);
-      if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
-        try {
-          const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
-          saveY = solar.getYear();
-          saveM = solar.getMonth();
-          saveD = solar.getDay();
-          hasBirth = true;
-        } catch {
-          Alert.alert('农历转换失败', '请确认农历日期有效');
+      const anyLunarFilled = lunarYear !== '' || lunarMonth !== '' || lunarDay !== '';
+      if (anyLunarFilled) {
+        if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
+          try {
+            const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
+            saveY = solar.getYear();
+            saveM = solar.getMonth();
+            saveD = solar.getDay();
+            hasBirth = true;
+          } catch {
+            Alert.alert('农历转换失败', '请确认农历日期有效');
+            return;
+          }
+        } else {
+          Alert.alert('日期不完整', '请填写完整的农历日期');
           return;
         }
-      } else if (lunarYear !== '' || lunarMonth !== '' || lunarDay !== '') {
-        Alert.alert('日期不完整', '请填写完整的农历日期');
-        return;
+      }
+      // Fallback: lunar fields empty → keep existing solar fields
+      if (!hasBirth) {
+        const y = parseInt(birthY, 10);
+        const m = parseInt(birthM, 10);
+        const d = parseInt(birthD, 10);
+        hasBirth = birthY !== '' || birthM !== '' || birthD !== '';
+        if (hasBirth && !isValidDate(y, m, d)) {
+          Alert.alert('日期有误', '请输入真实存在的日期');
+          return;
+        }
+        if (hasBirth) { saveY = y; saveM = m; saveD = d; }
       }
     } else {
       const y = parseInt(birthY, 10);
@@ -128,6 +144,11 @@ export default function EditProfileScreen({ navigation }: Props) {
       birthplace: birthplace.trim() || undefined,
     };
     await saveProfile(profile);
+    // Re-schedule notification if permission granted
+    const perm = await getPermissionStatus();
+    if (perm === 'granted') {
+      await scheduleDailyReminder(profile.reminderTime);
+    }
     navigation.goBack();
   };
 
@@ -178,7 +199,24 @@ export default function EditProfileScreen({ navigation }: Props) {
             <Text style={styles.sectionTitle}>出生日期</Text>
             <TouchableOpacity
               style={styles.calendarToggle}
-              onPress={() => setIsLunar(!isLunar)}
+              onPress={() => {
+                const next = !isLunar;
+                setIsLunar(next);
+                // Pre-fill lunar fields when switching to lunar mode
+                if (next && birthY && birthM && birthD) {
+                  const y = parseInt(birthY, 10);
+                  const m = parseInt(birthM, 10);
+                  const d = parseInt(birthD, 10);
+                  if (!isNaN(y) && !isNaN(m) && !isNaN(d) && isValidDate(y, m, d)) {
+                    try {
+                      const lunar = Solar.fromYmd(y, m, d).getLunar();
+                      setLunarYear(String(lunar.getYear()));
+                      setLunarMonth(String(lunar.getMonth()));
+                      setLunarDay(String(lunar.getDay()));
+                    } catch { /* ignore conversion errors */ }
+                  }
+                }
+              }}
             >
               <Text style={styles.calendarToggleText}>
                 {isLunar ? '农历 → 公历' : '公历 → 农历'}
