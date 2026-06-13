@@ -9,6 +9,7 @@ import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-n
 import { addSchedule, updateSchedule } from '../storage/schedule';
 import { isValidDate } from '../services/fortune';
 import type { ScheduleItem } from '../types';
+import type { AddScheduleParams } from '../navigation/types';
 
 const TYPE_OPTIONS: { key: ScheduleItem['type']; label: string }[] = [
   { key: 'meeting', label: '会议' },
@@ -27,13 +28,10 @@ const TIME_OPTIONS = [
 
 type Nav = NativeStackNavigationProp<any>;
 
-// Params that can be passed via route
-type AddScheduleParams = { date?: string; editItem?: { id: string; date: string; time: string; title: string; hint: string; type: string }; prefillTime?: string } | undefined;
-
 export default function AddScheduleScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute();
-  const params = route.params as AddScheduleParams;
+  const params = route.params as AddScheduleParams | undefined;
   const editItem = params?.editItem;
 
   const today = new Date();

@@ -159,7 +159,6 @@ export default function TodayScreen() {
               const startTime = fortune.luckyTime.split('-')[0]?.trim() || '09:00';
               navigation.navigate('AddSchedule', {
                 date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`,
-                editItem: undefined,
                 prefillTime: startTime,
               } as any);
             }}
