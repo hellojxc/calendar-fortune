@@ -55,8 +55,8 @@ export const TODAY_FORTUNE: DailyFortune = {
 // ── Today's schedule ──
 
 export const TODAY_SCHEDULE: ScheduleItem[] = [
-  { id: '1', time: '09:30', title: '团队周会', hint: '建议先讲结论，再展开细节', type: 'meeting' },
-  { id: '2', time: '14:00', title: '牙医复诊', hint: '出行提前 15 分钟', type: 'health' },
+  { id: '1', date: '2026-06-13', time: '09:30', title: '团队周会', hint: '建议先讲结论，再展开细节', type: 'meeting' },
+  { id: '2', date: '2026-06-13', time: '14:00', title: '牙医复诊', hint: '出行提前 15 分钟', type: 'health' },
 ];
 
 // ── Calendar month (June 2026) ──

@@ -1,10 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Solar } from 'lunar-typescript';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../theme';
 import { WEEKDAY_LABELS } from '../data/fixtures';
 import { computeFallbackFortune } from '../services/fortune';
+import { loadSchedule } from '../storage/schedule';
+import type { ScheduleItem } from '../types';
 
 interface CalendarDay {
   day: number;
@@ -12,6 +15,7 @@ interface CalendarDay {
   isToday: boolean;
   isOtherMonth: boolean;
   isSelected: boolean;
+  hasSchedule: boolean;
 }
 
 /** Use lunar-typescript for real lunar day conversion. */
@@ -30,33 +34,28 @@ function daysInMonth(y: number, m: number): number {
 }
 
 /** Build a full calendar grid for year/month */
-function buildCalendarGrid(year: number, month: number, today: Date, selectedDay: number | null): CalendarDay[] {
+function buildCalendarGrid(year: number, month: number, today: Date, selectedDay: number | null, scheduleDates: Set<string>): CalendarDay[] {
   const days: CalendarDay[] = [];
   const totalDays = daysInMonth(year, month);
-  const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0=Sun→offset to Mon
-  const offset = (firstDayOfWeek + 6) % 7; // Mon=0 ... Sun=6
+  const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+  const offset = (firstDayOfWeek + 6) % 7;
 
   // Previous month tail
-  const prevMonthDays = daysInMonth(year, month - 1);
+  const prevMonthDaysVal = daysInMonth(year, month - 1);
   for (let i = offset - 1; i >= 0; i--) {
-    days.push({
-      day: prevMonthDays - i,
-      lunar: '',
-      isToday: false,
-      isOtherMonth: true,
-      isSelected: false,
-    });
+    days.push({ day: prevMonthDaysVal - i, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false });
   }
 
   // Current month
   for (let d = 1; d <= totalDays; d++) {
+    const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     days.push({
       day: d,
       lunar: getLunarDay(year, month, d),
-      isToday:
-        d === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear(),
+      isToday: d === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear(),
       isOtherMonth: false,
       isSelected: selectedDay === d,
+      hasSchedule: scheduleDates.has(ds),
     });
   }
 
@@ -64,7 +63,7 @@ function buildCalendarGrid(year: number, month: number, today: Date, selectedDay
   const remaining = 7 - (days.length % 7);
   if (remaining < 7) {
     for (let d = 1; d <= remaining; d++) {
-      days.push({ day: d, lunar: '', isToday: false, isOtherMonth: true, isSelected: false });
+      days.push({ day: d, lunar: '', isToday: false, isOtherMonth: true, isSelected: false, hasSchedule: false });
     }
   }
 
@@ -79,9 +78,26 @@ export default function CalendarScreen() {
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
 
   const today = new Date();
+  const [allSchedules, setAllSchedules] = useState<ScheduleItem[]>([]);
+
+  // Load schedules on focus
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        setAllSchedules(await loadSchedule());
+      })();
+    }, [])
+  );
+
+  const scheduleDates = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of allSchedules) set.add(s.date);
+    return set;
+  }, [allSchedules]);
+
   const grid = useMemo(
-    () => buildCalendarGrid(viewYear, viewMonth, today, selectedDay),
-    [viewYear, viewMonth, selectedDay]
+    () => buildCalendarGrid(viewYear, viewMonth, today, selectedDay, scheduleDates),
+    [viewYear, viewMonth, selectedDay, scheduleDates]
   );
 
   // Week view: show only the 7-day row containing the selected day (or today)
@@ -129,6 +145,13 @@ export default function CalendarScreen() {
       return '';
     }
   }, [viewYear, viewMonth, selectedDay]);
+
+  // Schedules for selected day
+  const selectedDaySchedules = useMemo(() => {
+    const d = selectedDay ?? today.getDate();
+    const ds = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    return allSchedules.filter((s) => s.date === ds);
+  }, [viewYear, viewMonth, selectedDay, allSchedules]);
 
   const goPrevMonth = () => {
     if (viewMonth === 1) { setViewYear(viewYear - 1); setViewMonth(12); }
@@ -238,6 +261,7 @@ export default function CalendarScreen() {
                   {item.lunar}
                 </Text>
               )}
+              {item.hasSchedule && <View style={styles.dot} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -258,6 +282,18 @@ export default function CalendarScreen() {
               <Text style={styles.smallScoreText}>{selectedFortune.overallScore}</Text>
             </View>
           </View>
+          {/* Schedule list for selected day */}
+          {selectedDaySchedules.length > 0 && (
+            <View style={styles.scheduleSection}>
+              <Text style={styles.scheduleSectionTitle}>日程</Text>
+              {selectedDaySchedules.map((s) => (
+                <View key={s.id} style={styles.scheduleItem}>
+                  <Text style={styles.scheduleItemTime}>{s.time}</Text>
+                  <Text style={styles.scheduleItemTitle}>{s.title}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -320,6 +356,11 @@ const styles = StyleSheet.create({
   dayLunar: { fontSize: 9, color: PROTO.muted, marginTop: 2 },
   dayLunarToday: { color: 'rgba(255, 250, 241, 0.78)' },
   dayLunarSelected: { color: PROTO.jade },
+  dot: {
+    width: 5, height: 5, borderRadius: 3,
+    backgroundColor: PROTO.cinnabar, alignSelf: 'center',
+    marginTop: 4,
+  },
   dailyPanel: {
     marginTop: 13, borderWidth: 1, borderColor: PROTO.line,
     borderRadius: 8, padding: 12,
@@ -337,4 +378,18 @@ const styles = StyleSheet.create({
     backgroundColor: PROTO.cinnabarSoft, alignItems: 'center', justifyContent: 'center',
   },
   smallScoreText: { color: PROTO.cinnabar, fontWeight: '800', fontSize: 16 },
+  scheduleSection: {
+    marginTop: 12, paddingTop: 12,
+    borderTopWidth: 1, borderTopColor: PROTO.line,
+  },
+  scheduleSectionTitle: {
+    fontSize: 11, fontWeight: '700', color: PROTO.muted,
+    marginBottom: 8,
+  },
+  scheduleItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 6,
+  },
+  scheduleItemTime: { fontSize: 12, color: PROTO.cinnabar, fontWeight: '600', width: 40 },
+  scheduleItemTitle: { fontSize: 13, color: PROTO.ink, flex: 1 },
 });

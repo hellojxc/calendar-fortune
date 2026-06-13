@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Colors } from '../theme';
 import { addSchedule } from '../storage/schedule';
 import type { ScheduleItem } from '../types';
 import type { TodayStackParamList } from '../navigation/types';
@@ -19,22 +18,49 @@ const TYPE_OPTIONS: { key: ScheduleItem['type']; label: string }[] = [
   { key: 'other', label: '其他' },
 ];
 
+const TIME_OPTIONS = [
+  '06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30',
+  '10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+  '14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30',
+  '18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30',
+  '22:00',
+];
+
+function todayStr(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
 export default function AddScheduleScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
+  const [dateY, setDateY] = useState(String(new Date().getFullYear()));
+  const [dateM, setDateM] = useState(String(new Date().getMonth() + 1));
+  const [dateD, setDateD] = useState(String(new Date().getDate()));
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [time, setTime] = useState('09:00');
+  const [customTime, setCustomTime] = useState('');
+  const [useCustomTime, setUseCustomTime] = useState(false);
   const [hint, setHint] = useState('');
   const [type, setType] = useState<ScheduleItem['type']>('meeting');
 
+  const dateStr = useMemo(() => {
+    const y = dateY.padStart(4, '0');
+    const m = dateM.padStart(2, '0');
+    const d = dateD.padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, [dateY, dateM, dateD]);
+
   const handleSave = async () => {
-    if (!title.trim()) {
-      Alert.alert('请输入标题');
-      return;
-    }
-    if (!/^\d{2}:\d{2}$/.test(time)) {
+    if (!title.trim()) { Alert.alert('请输入标题'); return; }
+    const finalTime = useCustomTime ? customTime : time;
+    if (!/^\d{2}:\d{2}$/.test(finalTime)) {
       Alert.alert('时间格式有误', '请输入 HH:MM 格式（如 09:30）');
       return;
     }
-    await addSchedule({ title: title.trim(), time, hint: hint.trim(), type });
+    await addSchedule({ date: dateStr, time: finalTime, title: title.trim(), hint: hint.trim(), type });
     navigation.goBack();
   };
 
@@ -51,6 +77,104 @@ export default function AddScheduleScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
+        {/* Date */}
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>日期</Text>
+          <View style={styles.dateRow}>
+            <View style={{ flex: 2 }}>
+              <TextInput
+                style={styles.input}
+                value={dateY}
+                onChangeText={setDateY}
+                placeholder="2026"
+                placeholderTextColor={PROTO.muted}
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+            </View>
+            <Text style={styles.dateSep}>年</Text>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.input}
+                value={dateM}
+                onChangeText={setDateM}
+                placeholder="6"
+                placeholderTextColor={PROTO.muted}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+            </View>
+            <Text style={styles.dateSep}>月</Text>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.input}
+                value={dateD}
+                onChangeText={setDateD}
+                placeholder="13"
+                placeholderTextColor={PROTO.muted}
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+            </View>
+            <Text style={styles.dateSep}>日</Text>
+          </View>
+        </View>
+
+        {/* Time */}
+        <View style={styles.field}>
+          <View style={styles.fieldLabelRow}>
+            <Text style={styles.fieldLabel}>时间</Text>
+            <TouchableOpacity onPress={() => { setShowTimePicker(!showTimePicker); setUseCustomTime(false); }}>
+              <Text style={styles.toggleText}>{showTimePicker ? '收起' : '选择'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Current time display */}
+          <View style={styles.timeDisplay}>
+            <Text style={styles.timeDisplayText}>
+              {useCustomTime ? customTime || '--:--' : time}
+            </Text>
+            <TouchableOpacity
+              style={styles.customTimeBtn}
+              onPress={() => { setUseCustomTime(true); setShowTimePicker(false); }}
+            >
+              <Text style={styles.customTimeLabel}>自定义</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Custom time input */}
+          {useCustomTime && (
+            <TextInput
+              style={styles.input}
+              value={customTime}
+              onChangeText={setCustomTime}
+              placeholder="09:30"
+              placeholderTextColor={PROTO.muted}
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+              autoFocus
+            />
+          )}
+
+          {/* Time picker dropdown */}
+          {showTimePicker && (
+            <View style={styles.timePicker}>
+              {TIME_OPTIONS.map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.timeSlot, time === t && styles.timeSlotActive]}
+                  onPress={() => { setTime(t); setUseCustomTime(false); setShowTimePicker(false); }}
+                >
+                  <Text style={[styles.timeSlotText, time === t && styles.timeSlotTextActive]}>
+                    {t}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Title */}
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>标题</Text>
           <TextInput
@@ -58,24 +182,12 @@ export default function AddScheduleScreen({ navigation }: Props) {
             value={title}
             onChangeText={setTitle}
             placeholder="日程标题"
-            placeholderTextColor={Colors.muted}
-            autoFocus
+            placeholderTextColor={PROTO.muted}
+            autoFocus={!showTimePicker}
           />
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>时间</Text>
-          <TextInput
-            style={styles.input}
-            value={time}
-            onChangeText={setTime}
-            placeholder="09:00"
-            placeholderTextColor={Colors.muted}
-            keyboardType="numbers-and-punctuation"
-            maxLength={5}
-          />
-        </View>
-
+        {/* Hint */}
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>备注</Text>
           <TextInput
@@ -83,11 +195,12 @@ export default function AddScheduleScreen({ navigation }: Props) {
             value={hint}
             onChangeText={setHint}
             placeholder="可选备注"
-            placeholderTextColor={Colors.muted}
+            placeholderTextColor={PROTO.muted}
             multiline
           />
         </View>
 
+        {/* Type */}
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>类型</Text>
           <View style={styles.typeRow}>
@@ -111,7 +224,7 @@ export default function AddScheduleScreen({ navigation }: Props) {
 
 const PROTO = {
   ink: '#24211c', muted: '#756d61', line: '#dfd1bd',
-  surface: '#fffaf1', cinnabar: '#a8422d',
+  surface: '#fffaf1', cinnabar: '#a8422d', jade: '#2f7d63',
 };
 
 const styles = StyleSheet.create({
@@ -127,12 +240,45 @@ const styles = StyleSheet.create({
   saveText: { fontSize: 16, fontWeight: '700', color: PROTO.cinnabar },
   field: { marginBottom: 16 },
   fieldLabel: { fontSize: 11, fontWeight: '700', color: PROTO.muted, marginBottom: 6 },
+  fieldLabelRow: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 6,
+  },
+  toggleText: { fontSize: 12, color: PROTO.jade, fontWeight: '600' },
   input: {
     borderWidth: 1, borderColor: PROTO.line, borderRadius: 8,
     paddingHorizontal: 12, paddingVertical: 10,
     backgroundColor: PROTO.surface, fontSize: 15, color: PROTO.ink,
   },
   inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  dateSep: { fontSize: 13, color: PROTO.muted, fontWeight: '600' },
+  timeDisplay: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 10,
+    borderWidth: 1, borderColor: PROTO.line, borderRadius: 8,
+    backgroundColor: PROTO.surface, marginBottom: 8,
+  },
+  timeDisplayText: { fontSize: 18, fontWeight: '700', color: PROTO.ink, flex: 1 },
+  customTimeBtn: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 6, backgroundColor: '#f0d9d1',
+  },
+  customTimeLabel: { fontSize: 12, color: PROTO.cinnabar, fontWeight: '600' },
+  timePicker: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6,
+    padding: 10, borderRadius: 8,
+    borderWidth: 1, borderColor: PROTO.line,
+    backgroundColor: PROTO.surface,
+  },
+  timeSlot: {
+    width: '18%', paddingVertical: 7, paddingHorizontal: 2,
+    borderWidth: 1, borderColor: PROTO.line, borderRadius: 6,
+    backgroundColor: PROTO.surface, alignItems: 'center',
+  },
+  timeSlotActive: { borderColor: PROTO.jade, backgroundColor: 'rgba(47,125,99,0.12)' },
+  timeSlotText: { fontSize: 11, color: PROTO.muted, fontWeight: '500' },
+  timeSlotTextActive: { color: PROTO.jade, fontWeight: '700' },
   typeRow: { flexDirection: 'row', gap: 8 },
   typeChip: {
     paddingHorizontal: 16, paddingVertical: 8,

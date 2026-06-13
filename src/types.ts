@@ -68,7 +68,8 @@ export interface DailyFortune {
 
 export interface ScheduleItem {
   id: string;
-  time: string;       // e.g. "09:30"
+  date: string;        // YYYY-MM-DD
+  time: string;        // HH:MM
   title: string;
   hint: string;
   type: 'meeting' | 'personal' | 'health' | 'other';

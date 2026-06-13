@@ -36,6 +36,7 @@ export default function TodayScreen() {
       (async () => {
         const birth = await loadBirthData();
         const items = await loadSchedule();
+        const todayDateStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
         if (!cancelled) {
           if (birth) {
             setFortune(computeDailyFortune(birth));
@@ -44,7 +45,7 @@ export default function TodayScreen() {
             setFortune(computeFallbackFortune());
             setHasBirthData(false);
           }
-          setSchedule(items);
+          setSchedule(items.filter((s) => s.date === todayDateStr));
         }
       })();
       return () => { cancelled = true; };
@@ -152,7 +153,11 @@ export default function TodayScreen() {
                 onLongPress={() => handleDeleteItem(item)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.scheduleTime}>{item.time}</Text>
+                <Text style={styles.scheduleTime}>
+                  {item.date === `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`
+                    ? item.time
+                    : item.date + ' ' + item.time}
+                </Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.scheduleTitle}>{item.title}</Text>
                   <Text style={styles.scheduleHint}>{item.hint}</Text>
