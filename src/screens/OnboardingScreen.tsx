@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, Switch, TextInput,
@@ -127,13 +127,14 @@ export default function OnboardingScreen() {
   const monthDays = useMemo(() => {
     if (isLunar) {
       try {
-        return (LunarYear.fromYear(pickYear).getMonth(pickMonth) as any).getDayCount();
+        const lunarMonth = LunarYear.fromYear(pickYear).getMonth(toLunarMonth(pickMonth, isLeapMonth));
+        return lunarMonth?.getDayCount() ?? 0;
       } catch {
-        return 29;
+        return 0;
       }
     }
     return daysInMonth(pickYear, pickMonth);
-  }, [pickYear, pickMonth, isLunar]);
+  }, [pickYear, pickMonth, isLunar, isLeapMonth]);
 
   const firstDayOfWeek = useMemo(() => {
     if (isLunar) {
@@ -145,6 +146,14 @@ export default function OnboardingScreen() {
     }
     return new Date(pickYear, pickMonth - 1, 1).getDay();
   }, [pickYear, pickMonth, isLunar, isLeapMonth]);
+
+  useEffect(() => {
+    if (pickDay !== null && monthDays > 0 && pickDay > monthDays) {
+      setPickDay(monthDays);
+    }
+  }, [pickDay, monthDays]);
+
+  const canContinueDate = step !== 'date' || (pickDay !== null && monthDays > 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -266,8 +275,14 @@ export default function OnboardingScreen() {
               })}
             </View>
 
+            {isLunar && isLeapMonth && monthDays === 0 && (
+              <View style={styles.lunarPreview}>
+                <Text style={styles.lunarPreviewText}>该年没有这个闰月</Text>
+              </View>
+            )}
+
             {/* Conversion preview */}
-            {pickDay !== null && (() => {
+            {pickDay !== null && monthDays > 0 && (() => {
               try {
                 const display = isLunar
                   ? (() => {
@@ -354,12 +369,12 @@ export default function OnboardingScreen() {
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
           <TouchableOpacity
-            style={[styles.navBtn, styles.navBtnPrimary]}
+            style={[styles.navBtn, styles.navBtnPrimary, !canContinueDate && styles.navBtnDisabled]}
             onPress={() => {
               if (step === 'date') setStep('time');
               else if (step === 'time') setStep('done');
             }}
-            disabled={step === 'date' && pickDay === null}
+            disabled={!canContinueDate}
             activeOpacity={0.7}
           >
             <Text style={[styles.navBtnText, styles.navBtnTextPrimary]}>
@@ -464,6 +479,7 @@ const styles = StyleSheet.create({
   },
   navBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
   navBtnPrimary: { backgroundColor: '#2f7d63' },
+  navBtnDisabled: { opacity: 0.4 },
   navBtnText: { fontSize: 15, color: '#756d61', fontWeight: '600' },
   navBtnTextPrimary: { color: '#fff' },
 });

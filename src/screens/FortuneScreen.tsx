@@ -2,23 +2,19 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import ElementBar from '../components/ElementBar';
 import { TODAY_FORTUNE } from '../data/fixtures';
 import { loadBirthData } from '../storage/profile';
 import { computeDailyFortune, computeFallbackFortune } from '../services/fortune';
-import type { DailyFortune, BirthData } from '../types';
-import type { FortuneStackParamList } from '../navigation/types';
-
-type Nav = NativeStackNavigationProp<FortuneStackParamList, 'FortuneMain'>;
+import type { DailyFortune } from '../types';
 
 export default function FortuneScreen() {
-  const navigation = useNavigation<Nav>();
+  const navigation = useNavigation<any>();
   const [fortune, setFortune] = useState<DailyFortune>(TODAY_FORTUNE);
   const [hasBirthData, setHasBirthData] = useState(false);
 
-  // Reload fortune every time screen is focused (after BirthData form edits)
+  // Reload fortune every time screen is focused after profile edits.
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -37,6 +33,10 @@ export default function FortuneScreen() {
     }, [])
   );
 
+  const openProfileEditor = () => {
+    navigation.navigate('MeTab', { screen: 'EditProfile' });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
@@ -49,7 +49,7 @@ export default function FortuneScreen() {
           </View>
           <TouchableOpacity
             style={styles.iconBtn}
-            onPress={() => navigation.navigate('BirthData')}
+            onPress={openProfileEditor}
           >
             <Text style={styles.iconBtnText}>{hasBirthData ? '✎' : '＋'}</Text>
           </TouchableOpacity>
@@ -128,7 +128,7 @@ export default function FortuneScreen() {
           <TouchableOpacity
             style={styles.ctaBanner}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('BirthData')}
+            onPress={openProfileEditor}
           >
             <Text style={styles.ctaBannerText}>
               ✦ 设置生辰八字，生成专属运势
