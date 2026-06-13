@@ -14,6 +14,9 @@ import { isValidDate } from '../services/fortune';
 import type { UserProfile } from '../types';
 import type { MeStackParamList } from '../navigation/types';
 
+/** Convert month + isLeap flag to negative-month param for Lunar.fromYmd */
+const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -m : m;
+
 type Props = NativeStackScreenProps<MeStackParamList, 'EditProfile'>;
 
 /** Chinese hour index → representative solar hour */
@@ -95,9 +98,10 @@ export default function EditProfileScreen({ navigation }: Props) {
       const ld = parseInt(lunarDay, 10);
       const anyLunarFilled = lunarYear !== '' || lunarMonth !== '' || lunarDay !== '';
       if (anyLunarFilled) {
-        if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
+        const lmAbs = Math.abs(lm);
+        if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lmAbs >= 1 && lmAbs <= 12 && ld >= 1 && ld <= 30) {
           try {
-            const solar = (Lunar as any).fromYmd(ly, lm, ld, isLeapMonth).getSolar();
+            const solar = Lunar.fromYmd(ly, toLunarMonth(lm, isLeapMonth), ld).getSolar();
             saveY = solar.getYear();
             saveM = solar.getMonth();
             saveD = solar.getDay();
@@ -211,8 +215,10 @@ export default function EditProfileScreen({ navigation }: Props) {
                   if (!isNaN(y) && !isNaN(m) && !isNaN(d) && isValidDate(y, m, d)) {
                     try {
                       const lunar = Solar.fromYmd(y, m, d).getLunar();
+                      const lm = lunar.getMonth();
                       setLunarYear(String(lunar.getYear()));
-                      setLunarMonth(String(lunar.getMonth()));
+                      setIsLeapMonth(lm < 0);
+                      setLunarMonth(String(Math.abs(lm)));
                       setLunarDay(String(lunar.getDay()));
                     } catch { /* ignore conversion errors */ }
                   }
@@ -279,9 +285,9 @@ export default function EditProfileScreen({ navigation }: Props) {
                 const ly = parseInt(lunarYear, 10);
                 const lm = parseInt(lunarMonth, 10);
                 const ld = parseInt(lunarDay, 10);
-                if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && lm >= 1 && lm <= 12 && ld >= 1 && ld <= 30) {
+                if (!isNaN(ly) && !isNaN(lm) && !isNaN(ld) && Math.abs(lm) >= 1 && Math.abs(lm) <= 12 && ld >= 1 && ld <= 30) {
                   try {
-                    const solar = Lunar.fromYmd(ly, lm, ld).getSolar();
+                    const solar = Lunar.fromYmd(ly, toLunarMonth(lm, isLeapMonth), ld).getSolar();
                     const s = solar.toFullString();
                     return (
                       <View style={styles.lunarPreview}>

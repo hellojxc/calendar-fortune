@@ -15,6 +15,8 @@ import type { UserProfile } from '../types';
 
 type Step = 'type' | 'date' | 'time' | 'done';
 
+const toLunarMonth = (m: number, isLeap: boolean) => isLeap ? -m : m;
+
 export default function OnboardingScreen() {
   const navigation = useNavigation<any>();
   const [step, setStep] = useState<Step>('type');
@@ -38,11 +40,10 @@ export default function OnboardingScreen() {
     let birthY: number, birthM: number, birthD: number;
     if (isLunar) {
       try {
-        const solar = (Lunar as any).fromYmd(
+        const solar = Lunar.fromYmd(
           parseInt(lunarY, 10),
-          parseInt(lunarM, 10),
-          parseInt(lunarD, 10),
-          isLeapMonth
+          toLunarMonth(parseInt(lunarM, 10), isLeapMonth),
+          parseInt(lunarD, 10)
         ).getSolar();
         birthY = solar.getYear();
         birthM = solar.getMonth();
@@ -228,7 +229,11 @@ export default function OnboardingScreen() {
                 <Text style={styles.lunarPreviewText}>
                   {(() => {
                     try {
-                      const s = Lunar.fromYmd(parseInt(lunarY), parseInt(lunarM), parseInt(lunarD)).getSolar();
+                      const s = Lunar.fromYmd(
+                        parseInt(lunarY),
+                        toLunarMonth(parseInt(lunarM), isLeapMonth),
+                        parseInt(lunarD)
+                      ).getSolar();
                       return `公历 ${s.toFullString()}`;
                     } catch { return ''; }
                   })()}
