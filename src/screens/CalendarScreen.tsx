@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Solar } from 'lunar-typescript';
 import { Colors } from '../theme';
 import { WEEKDAY_LABELS } from '../data/fixtures';
 import { computeFallbackFortune } from '../services/fortune';
@@ -13,19 +14,14 @@ interface CalendarDay {
   isSelected: boolean;
 }
 
-/** Very rough lunar day approximation (only for visual demo; not astronomically accurate). */
-function approximateLunarDay(year: number, month: number, day: number): string {
-  const names = [
-    '','一','二','三','四','五','六','七','八','九','十',
-    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
-    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十',
-  ];
-  // Simple offset: 2026-01-01 ≈ 腊月十二
-  const base = new Date(2026, 0, 1);
-  const target = new Date(year, month - 1, day);
-  const diff = Math.round((target.getTime() - base.getTime()) / 86400000);
-  const lunarIdx = ((diff + 12) % 30 + 30) % 30;
-  return names[lunarIdx + 1] || `${day}`;
+/** Use lunar-typescript for real lunar day conversion. */
+function getLunarDay(year: number, month: number, day: number): string {
+  try {
+    const solar = Solar.fromYmd(year, month, day);
+    return solar.getLunar().getDayInChinese();
+  } catch {
+    return `${day}`;
+  }
 }
 
 /** Days in month */
@@ -56,7 +52,7 @@ function buildCalendarGrid(year: number, month: number, today: Date, selectedDay
   for (let d = 1; d <= totalDays; d++) {
     days.push({
       day: d,
-      lunar: approximateLunarDay(year, month, d),
+      lunar: getLunarDay(year, month, d),
       isToday:
         d === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear(),
       isOtherMonth: false,
@@ -117,6 +113,21 @@ export default function CalendarScreen() {
   const selectedFortune = useMemo(() => {
     const d = selectedDay ?? today.getDate();
     return computeFallbackFortune(new Date(viewYear, viewMonth - 1, d));
+  }, [viewYear, viewMonth, selectedDay]);
+
+  const selectedLunarStr = useMemo(() => {
+    const d = selectedDay ?? today.getDate();
+    try {
+      const solar = Solar.fromYmd(viewYear, viewMonth, d);
+      const lunar = solar.getLunar();
+      const monthCh = lunar.getMonthInChinese();
+      const dayCh = lunar.getDayInChinese();
+      const term = lunar.getJieQi() || lunar.getPrevJieQi() || lunar.getNextJieQi();
+      const termStr = term && typeof term !== 'string' ? term.getName() : '';
+      return `农历${monthCh}月${dayCh}${termStr ? ' · ' + termStr : ''}`;
+    } catch {
+      return '';
+    }
   }, [viewYear, viewMonth, selectedDay]);
 
   const goPrevMonth = () => {
@@ -236,6 +247,9 @@ export default function CalendarScreen() {
           <View style={styles.dailyPanelTop}>
             <View style={{ flex: 1 }}>
               <Text style={styles.dailyPanelTitle}>{selectedDate}</Text>
+              <Text style={styles.dailyPanelLunar}>
+                {selectedLunarStr}
+              </Text>
               <Text style={styles.dailyPanelDesc}>
                 运势 {selectedFortune.overallScore} · {selectedFortune.keyword}
               </Text>
@@ -316,6 +330,7 @@ const styles = StyleSheet.create({
     gap: 12, marginBottom: 4,
   },
   dailyPanelTitle: { fontSize: 15, fontWeight: '700', color: PROTO.ink },
+  dailyPanelLunar: { fontSize: 12, color: PROTO.muted, marginTop: 2 },
   dailyPanelDesc: { fontSize: 12, color: PROTO.muted, lineHeight: 18, marginTop: 4 },
   smallScore: {
     width: 48, height: 48, borderRadius: 24,
